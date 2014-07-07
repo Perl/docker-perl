@@ -10,7 +10,7 @@ RUN curl -SL http://www.cpan.org/src/5.0/perl-5.20.0.tar.gz \
 
 RUN ./Configure -des \
         && make -j$(nproc) \
-        && TEST_JOBS=8 make test_harness \
+        && TEST_JOBS=$(nproc) make test_harness \
         && make install \
         && make veryclean
 
