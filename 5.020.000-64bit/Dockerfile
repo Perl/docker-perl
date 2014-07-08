@@ -14,7 +14,6 @@ RUN ./Configure -Duse64bitall -des \
         && make install \
         && make veryclean
 
-CMD ["perl5.20.0 -V"]
-
 WORKDIR /root
-RUN rm -fR /usr/src/perl
+
+CMD ["perl5.20.0","-de0"]
