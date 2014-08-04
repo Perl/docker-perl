@@ -14,6 +14,12 @@ RUN ./Configure -Duse64bitall -des \
         && make install \
         && make veryclean
 
+WORKDIR /usr/src
+RUN curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
+        && chmod +x cpanm \
+        && ./cpanm App::cpanminus \
+        && rm ./cpanm
+
 WORKDIR /root
 
 CMD ["perl5.20.0","-de0"]
