@@ -3,6 +3,9 @@ docker-perl
 
 Dockerfiles for Perl5
 
+This project is the source for the Docker perl repo; for more details, take
+a look at https://registry.hub.docker.com/_/perl/.
+
 The structure of this repo is to use the full version ID of each Perl version,
 plus a comma separate list of extensions.  Every directory is expected to have
 at least the bit specification (32bit or 64bit), and at the moment the only
