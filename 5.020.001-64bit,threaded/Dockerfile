@@ -3,11 +3,14 @@ MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
 RUN apt-get update && apt-get install -y curl procps
 
-RUN mkdir /usr/src/perl
-WORKDIR /usr/src/perl
-RUN curl -SL http://www.cpan.org/src/5.0/perl-5.20.1.tar.gz \
-                | tar -xz --strip-components=1
+WORKDIR /tmp
+ADD sha1.txt /tmp/sha1.txt
+RUN curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.20.1.tar.bz2 -o /tmp/perl-5.20.1.tar.bz2
+RUN sha1sum -c /tmp/sha1.txt
 
+WORKDIR /usr/src/perl
+RUN tar --strip-components=1 -xjf /tmp/perl-5.20.1.tar.bz2
+RUN rm /tmp/perl-5.20.1.tar.bz2 /tmp/sha1.txt
 RUN ./Configure -Dusethreads -Duse64bitall -des \
         && make -j$(nproc) \
         && TEST_JOBS=$(nproc) make test_harness \
