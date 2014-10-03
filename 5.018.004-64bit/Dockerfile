@@ -4,11 +4,17 @@ MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 RUN apt-get update && apt-get install -y curl procps
 
 RUN mkdir /usr/src/perl
-WORKDIR /usr/src/perl
-RUN curl -SL http://www.cpan.org/src/5.0/perl-5.18.2.tar.gz \
-                | tar -xz --strip-components=1
 
-RUN ./Configure -Duse64bitall -des \
+WORKDIR /tmp
+ADD sha1.txt /tmp/sha1.txt
+RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 -o /tmp/perl-5.18.4.tar.bz2
+RUN sha1sum -c /tmp/sha1.txt
+
+WORKDIR /usr/src/perl
+RUN tar --strip-components=1 -xjf /tmp/perl-5.18.4.tar.bz2
+RUN rm /tmp/perl-5.18.4.tar.bz2 /tmp/sha1.txt
+# ccflags=-fwrapv is needed for gcc 4.9, and added by Configure automatically in 5.20+
+RUN ./Configure -Duse64bitall -A ccflags=-fwrapv -des \
         && make -j$(nproc) \
         && TEST_JOBS=$(nproc) make test_harness \
         && make install \
@@ -22,4 +28,4 @@ RUN curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
 
 WORKDIR /root
 
-CMD ["perl5.18.2","-de0"]
+CMD ["perl5.18.4","-de0"]
