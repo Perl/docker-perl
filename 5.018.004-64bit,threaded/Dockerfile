@@ -12,8 +12,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 
     && tar --strip-components=1 -xjf perl-5.18.4.tar.bz2 -C /usr/src/perl \
     && rm perl-5.18.4.tar.bz2 /tmp/sha1.txt
 
-# ccflags=-fwrapv is needed for gcc 4.9, and added by Configure automatically in 5.20+
-RUN ./Configure -Dusethreads -A ccflags=-fwrapv -Duse64bitall -des \
+RUN ./Configure -Dusethreads -Duse64bitall -A ccflags=-fwrapv -des \
         && make -j$(nproc) \
         && TEST_JOBS=$(nproc) make test_harness \
         && make install \

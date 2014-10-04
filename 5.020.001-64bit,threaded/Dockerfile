@@ -12,7 +12,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.20.1.tar.bz2 
     && tar --strip-components=1 -xjf perl-5.20.1.tar.bz2 -C /usr/src/perl \
     && rm perl-5.20.1.tar.bz2 /tmp/sha1.txt
 
-RUN ./Configure -Dusethreads -Duse64bitall -des \
+RUN ./Configure -Dusethreads -Duse64bitall  -des \
         && make -j$(nproc) \
         && TEST_JOBS=$(nproc) make test_harness \
         && make install \
