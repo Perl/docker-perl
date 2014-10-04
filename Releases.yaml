@@ -1,0 +1,9 @@
+releases:
+  - version: 5.18.4
+    sha1:    69c34558a0a939a7adbbc1de48c06ea418d81e27
+    pause:   RJBS
+    extra_flags: "-A ccflags=-fwrapv"
+
+  - version: 5.20.1
+    sha1:    cd424d1520ba2686fe5d4422565aaf880e9467f6
+    pause:   SHAY
