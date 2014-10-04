@@ -4,15 +4,14 @@ MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 RUN apt-get update && apt-get install -y curl procps
 
 RUN mkdir /usr/src/perl
-
-WORKDIR /tmp
-ADD sha1.txt /tmp/sha1.txt
-RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 -o /tmp/perl-5.18.4.tar.bz2
-RUN sha1sum -c /tmp/sha1.txt
-
 WORKDIR /usr/src/perl
-RUN tar --strip-components=1 -xjf /tmp/perl-5.18.4.tar.bz2
-RUN rm /tmp/perl-5.18.4.tar.bz2 /tmp/sha1.txt
+
+COPY sha1.txt /tmp/sha1.txt
+RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar.bz2 \
+    && sha1sum -c /tmp/sha1.txt \
+    && tar --strip-components=1 -xjf perl-5.18.4.tar.bz2 -C /usr/src/perl \
+    && rm perl-5.18.4.tar.bz2 /tmp/sha1.txt
+
 # ccflags=-fwrapv is needed for gcc 4.9, and added by Configure automatically in 5.20+
 RUN ./Configure -Duse64bitall -A ccflags=-fwrapv -des \
         && make -j$(nproc) \
