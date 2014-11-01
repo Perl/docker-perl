@@ -130,6 +130,7 @@ WORKDIR /usr/src
 RUN curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
         && chmod +x cpanm \
         && ./cpanm App::cpanminus \
+        && rm -fr /root/.cpanm \
         && rm ./cpanm
 
 WORKDIR /root
