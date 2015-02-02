@@ -8,11 +8,10 @@ RUN apt-get update \
 RUN mkdir /usr/src/perl
 WORKDIR /usr/src/perl
 
-COPY sha1.txt /tmp/sha1.txt
 RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar.bz2 \
-    && sha1sum -c /tmp/sha1.txt \
+    && echo '69c34558a0a939a7adbbc1de48c06ea418d81e27 *perl-5.18.4.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-5.18.4.tar.bz2 -C /usr/src/perl \
-    && rm perl-5.18.4.tar.bz2 /tmp/sha1.txt \
+    && rm perl-5.18.4.tar.bz2 \
     && ./Configure -Duse64bitall -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
