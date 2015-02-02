@@ -49,16 +49,12 @@ for my $release (@{$yaml->{releases}}) {
 
   for my $config (keys %builds) {
     my $output = $template;
-    $output =~ s/{{$_}}/$release->{$_}/mg for (qw(version pause extra_flags));
+    $output =~ s/{{$_}}/$release->{$_}/mg for (qw(version pause extra_flags sha1));
     $output =~ s/{{args}}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
                       ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/),
                       $config;
-
-    open my $sha1, ">$dir/sha1.txt" or die "Couldn't open $dir/sha1.txt for writing";
-    print $sha1 "$release->{sha1} perl-$release->{version}.tar.bz2\n";
-    close $sha1;
 
     open my $dockerfile, ">$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
@@ -116,11 +112,10 @@ RUN apt-get update \
 RUN mkdir /usr/src/perl
 WORKDIR /usr/src/perl
 
-COPY sha1.txt /tmp/sha1.txt
 RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
-    && sha1sum -c /tmp/sha1.txt \
+    && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
-    && rm perl-{{version}}.tar.bz2 /tmp/sha1.txt \
+    && rm perl-{{version}}.tar.bz2 \
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
