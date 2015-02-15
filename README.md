@@ -16,3 +16,6 @@ builds.
 
 The 64bit builds specify use64bitall despite this being largely redundant
 (Configure would properly detect this) to make the desired bit size explicit.
+
+The individual Dockerfiles are generated via 'generate.pl', which uses
+Releases.yaml to populate the individual files.
