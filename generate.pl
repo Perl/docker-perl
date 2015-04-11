@@ -56,6 +56,8 @@ for my $release (@{$yaml->{releases}}) {
                       ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/),
                       $config;
 
+    mkdir $dir unless -d $dir;
+
     open my $dockerfile, ">$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
     close $dockerfile;
