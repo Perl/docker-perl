@@ -68,6 +68,14 @@ for my $release (@{$yaml->{releases}}) {
         $output =~ s/.*{{apply_patches}}.*\n//mg;
     }
 
+    if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
+        $output =~ s/{{test}}/make test_harness/;
+    } elsif (!defined $release->{test_parallel} || $release->{test_parallel} eq "yes") {
+        $output =~ s/{{test}}/TEST_JOBS=\$(nproc) make test_harness/;
+    } else {
+        die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
+    }
+
     open my $dockerfile, ">$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
     close $dockerfile;
@@ -132,7 +140,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar
     && {{apply_patches}} \
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
-    && TEST_JOBS=$(nproc) make test_harness \
+    && {{test}} \
     && make install \
     && cd /usr/src \
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
