@@ -58,6 +58,16 @@ for my $release (@{$yaml->{releases}}) {
 
     mkdir $dir unless -d $dir;
 
+    # glob switches behavior in scalar context, so force an intermediate
+    # list context so we can get the count
+    if (() = glob "$dir/*.patch") {
+        $output =~ s#{{copy_patches}}#COPY *.patch /usr/src/perl/#;
+        $output =~ s#{{apply_patches}}#cat *.patch | patch -p1#;
+    } else {
+        $output =~ s/{{copy_patches}}\n//mg;
+        $output =~ s/.*{{apply_patches}}.*\n//mg;
+    }
+
     open my $dockerfile, ">$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
     close $dockerfile;
@@ -112,12 +122,14 @@ RUN apt-get update \
     && rm -fr /var/lib/apt/lists/*
 
 RUN mkdir /usr/src/perl
+{{copy_patches}}
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
     && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
+    && {{apply_patches}} \
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
