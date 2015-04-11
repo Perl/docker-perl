@@ -100,6 +100,10 @@ each with the following keys:
 
 =over 4
 
+=item REQUIRED
+
+=over 4
+
 =item version
 
 The actual perl version, such as B<5.20.1>.
@@ -112,16 +116,28 @@ The SHA-1 of the C<.tar.bz2> file for that release.
 
 The PAUSE (CPAN user) account that the release was uploaded to.
 
-=item (optionally) extra_args
+=back
+
+=item OPTIONAL
+
+=over 4
+
+=item extra_args
 
 Additional text to pass to C<Configure>.  At the moment, this is necessary for
 5.18.x so that it can get the C<-fwrapv> flag.
 
-=item (optionally) test_parallel
+Default: C<"">
+
+=item test_parallel
 
 This can be either 'no', 'yes', or unspecified (equivalent to 'yes').
 Added due to dist/IO/t/io_unix.t failing when TEST_JOBS > 1, but should
 only be used in case of a documented issue.
+
+Default: C<yes>
+
+=back
 
 =back
 
