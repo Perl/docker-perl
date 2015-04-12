@@ -1,0 +1,10 @@
+# This should be auto-generated; for now, it's not,
+# simply because it should be generated before the build,
+# which means having the appropriate version's patchlevel.h
+# available, which I don't want to bake into the fetch just
+# yet.
+
+--- a/patchlevel.h
++++ b/patchlevel.h
+@@ -135,0 +136 @@
++	,"Backport of perl5 git 6f87f404fa51739971a4068da1f11443024f3fc4"
