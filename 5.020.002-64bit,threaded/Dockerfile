@@ -14,7 +14,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.20.2.tar.bz2 
     && rm perl-5.20.2.tar.bz2 \
     && ./Configure -Dusethreads -Duse64bitall  -des \
     && make -j$(nproc) \
-    && TEST_JOBS=$(nproc) make test_harness \
+    && make test_harness \
     && make install \
     && cd /usr/src \
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \

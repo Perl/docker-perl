@@ -14,7 +14,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 
     && rm perl-5.18.4.tar.bz2 \
     && ./Configure -Duse64bitall -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
-    && TEST_JOBS=$(nproc) make test_harness \
+    && make test_harness \
     && make install \
     && cd /usr/src \
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
