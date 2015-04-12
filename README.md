@@ -19,3 +19,9 @@ The 64bit builds specify use64bitall despite this being largely redundant
 
 The individual Dockerfiles are generated via 'generate.pl', which uses
 Releases.yaml to populate the individual files.
+
+For older versions of Perl, some patches may be necessary to build properly on
+a current base OS.  In those cases, perl -V will show the locally applied patches.
+These changes should be limited to Configure rather than to code itself, and
+will be a cherry pick or back port of a patch from the mainline perl branch
+whenever possible.

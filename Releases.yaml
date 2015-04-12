@@ -1,4 +1,10 @@
 releases:
+  - version: 5.16.3
+    sha1:    060bc17cf9f142d043f9bf7b861422ec624875ea
+    pause:   RJBS
+    extra_flags: "-A ccflags=-fwrapv"
+    test_parallel: no
+
   - version: 5.18.4
     sha1:    69c34558a0a939a7adbbc1de48c06ea418d81e27
     pause:   RJBS

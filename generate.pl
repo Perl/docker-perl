@@ -56,6 +56,26 @@ for my $release (@{$yaml->{releases}}) {
                       ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/),
                       $config;
 
+    mkdir $dir unless -d $dir;
+
+    # glob switches behavior in scalar context, so force an intermediate
+    # list context so we can get the count
+    if (() = glob "$dir/*.patch") {
+        $output =~ s#{{copy_patches}}#COPY *.patch /usr/src/perl/#;
+        $output =~ s#{{apply_patches}}#cat *.patch | patch -p1#;
+    } else {
+        $output =~ s/{{copy_patches}}\n//mg;
+        $output =~ s/.*{{apply_patches}}.*\n//mg;
+    }
+
+    if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
+        $output =~ s/{{test}}/make test_harness/;
+    } elsif (!defined $release->{test_parallel} || $release->{test_parallel} eq "yes") {
+        $output =~ s/{{test}}/TEST_JOBS=\$(nproc) make test_harness/;
+    } else {
+        die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
+    }
+
     open my $dockerfile, ">$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
     close $dockerfile;
@@ -80,6 +100,10 @@ each with the following keys:
 
 =over 4
 
+=item REQUIRED
+
+=over 4
+
 =item version
 
 The actual perl version, such as B<5.20.1>.
@@ -92,10 +116,28 @@ The SHA-1 of the C<.tar.bz2> file for that release.
 
 The PAUSE (CPAN user) account that the release was uploaded to.
 
-=item (optionally) extra_args
+=back
+
+=item OPTIONAL
+
+=over 4
+
+=item extra_args
 
 Additional text to pass to C<Configure>.  At the moment, this is necessary for
 5.18.x so that it can get the C<-fwrapv> flag.
+
+Default: C<"">
+
+=item test_parallel
+
+This can be either 'no', 'yes', or unspecified (equivalent to 'yes').
+Added due to dist/IO/t/io_unix.t failing when TEST_JOBS > 1, but should
+only be used in case of a documented issue.
+
+Default: C<yes>
+
+=back
 
 =back
 
@@ -110,15 +152,17 @@ RUN apt-get update \
     && rm -fr /var/lib/apt/lists/*
 
 RUN mkdir /usr/src/perl
+{{copy_patches}}
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
     && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
+    && {{apply_patches}} \
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
-    && TEST_JOBS=$(nproc) make test_harness \
+    && {{test}} \
     && make install \
     && cd /usr/src \
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
