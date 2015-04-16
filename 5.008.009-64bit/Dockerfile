@@ -13,7 +13,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/N/NW/NWCLARK/perl-5.8.9.tar.bz
     && echo '19843b5a7585cf35d96c07dbcd419bbdd5813617 *perl-5.8.9.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-5.8.9.tar.bz2 -C /usr/src/perl \
     && rm perl-5.8.9.tar.bz2 \
-    && cat DevelPatchPerl.patch | patch -p1
+    && cat DevelPatchPerl.patch | patch -p1 \
     && ./Configure -Duse64bitall -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && make test_harness \

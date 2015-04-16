@@ -13,7 +13,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/D/DO/DOM/perl-5.12.5.tar.bz2 -
     && echo '812139ceef512eb8458af29ffbf46d78ef26c12a *perl-5.12.5.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-5.12.5.tar.bz2 -C /usr/src/perl \
     && rm perl-5.12.5.tar.bz2 \
-    && cat DevelPatchPerl.patch | patch -p1
+    && cat DevelPatchPerl.patch | patch -p1 \
     && ./Configure -Dusethreads -Duse64bitall -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && make test_harness \
