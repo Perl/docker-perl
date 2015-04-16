@@ -3,6 +3,8 @@ use v5.20;
 use strict;
 use warnings;
 use YAML::XS;
+use Devel::PatchPerl;
+use LWP::Simple;
 
 sub die_with_sample {
   die <<EOF;
@@ -42,8 +44,45 @@ my %builds = (
 die_with_sample unless defined $yaml->{releases};
 die_with_sample unless ref $yaml->{releases} eq "ARRAY";
 
+if (! -d "downloads") {
+  mkdir "downloads" or die "Couldn't create a downloads directory";
+}
+
 for my $release (@{$yaml->{releases}}) {
   do { die_with_sample unless $release->{$_}} for (qw(version pause sha1));
+
+  die "Bad version: $release->{version}" unless $release->{version} =~ /\A5\.\d+\.\d+\Z/;
+
+  my $patch;
+  my $file = "perl-$release->{version}.tar.bz2";
+  my $url = "http://www.cpan.org/src/5.0/$file";
+  if (-f "downloads/$file" &&
+    `sha1sum downloads/$file` =~ /^\Q$release->{sha1}\E\s+\Qdownloads\/$file\E/) {
+      print "Skipping download of $file, already current\n";
+  } else {
+    print "Downloading $url\n";
+    getstore($url, "downloads/$file");
+  }
+  {
+    my $dir = "downloads/perl-$release->{version}";
+    qx{rm -fR $dir};
+    mkdir $dir or die "Couldn't create $dir";
+    qx{
+      tar -C "downloads" -jxf $dir.tar.bz2 &&\
+      cd $dir &&\
+      find . -exec chmod u+w {} + &&\
+      git init &&\
+      git add . &&\
+      git commit -m tmp
+    };
+    die "Couldn't create a temp git repo for $release->{version}" if $? != 0;
+    Devel::PatchPerl->patch_source($release->{version}, $dir);
+    $patch = qx{
+      cd $dir && git commit -am tmp >/dev/null 2>/dev/null && git format-patch -1 --stdout
+    };
+    die "Couldn't create a Devel::PatchPerl patch for $release->{version}" if $? != 0;
+  }
+
   $release->{pause} =~ s#(((.).).*)#$3/$2/$1#;
   $release->{extra_flags} = "" unless defined $release->{extra_flags};
 
@@ -58,14 +97,10 @@ for my $release (@{$yaml->{releases}}) {
 
     mkdir $dir unless -d $dir;
 
-    # glob switches behavior in scalar context, so force an intermediate
-    # list context so we can get the count
-    if (() = glob "$dir/*.patch") {
-        $output =~ s#{{copy_patches}}#COPY *.patch /usr/src/perl/#;
-        $output =~ s#{{apply_patches}}#cat *.patch | patch -p1#;
-    } else {
-        $output =~ s/{{copy_patches}}\n//mg;
-        $output =~ s/.*{{apply_patches}}.*\n//mg;
+    # Set up the generated DevelPatchPerl.patch
+    {
+      open(my $fh, ">$dir/DevelPatchPerl.patch");
+      print $fh $patch;
     }
 
     if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
@@ -152,14 +187,14 @@ RUN apt-get update \
     && rm -fr /var/lib/apt/lists/*
 
 RUN mkdir /usr/src/perl
-{{copy_patches}}
+COPY DevelPatchPerl.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
     && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
-    && {{apply_patches}} \
+    && cat DevelPatchPerl.patch | patch -p1
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
     && {{test}} \
