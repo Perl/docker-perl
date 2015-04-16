@@ -194,7 +194,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar
     && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
-    && cat DevelPatchPerl.patch | patch -p1
+    && cat DevelPatchPerl.patch | patch -p1 \
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
     && {{test}} \
