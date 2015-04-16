@@ -6,14 +6,14 @@ RUN apt-get update \
     && rm -fr /var/lib/apt/lists/*
 
 RUN mkdir /usr/src/perl
-COPY *.patch /usr/src/perl/
+COPY DevelPatchPerl.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/D/DA/DAPM/perl-5.14.4.tar.bz2 -o perl-5.14.4.tar.bz2 \
     && echo '3527c9e26f985cba98796439bf555fde8be73cdf *perl-5.14.4.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-5.14.4.tar.bz2 -C /usr/src/perl \
     && rm perl-5.14.4.tar.bz2 \
-    && cat *.patch | patch -p1 \
+    && cat DevelPatchPerl.patch | patch -p1
     && ./Configure -Dusethreads -Duse64bitall -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && make test_harness \

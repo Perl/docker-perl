@@ -9,12 +9,12 @@ RUN mkdir /usr/src/perl
 COPY DevelPatchPerl.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar.bz2 \
-    && echo '69c34558a0a939a7adbbc1de48c06ea418d81e27 *perl-5.18.4.tar.bz2' | sha1sum -c - \
-    && tar --strip-components=1 -xjf perl-5.18.4.tar.bz2 -C /usr/src/perl \
-    && rm perl-5.18.4.tar.bz2 \
+RUN curl -SL https://cpan.metacpan.org/authors/id/D/DA/DAPM/perl-5.10.1.tar.bz2 -o perl-5.10.1.tar.bz2 \
+    && echo '98b762b5cd4fb76dd354dfa5ba0d21bc2acacaf2 *perl-5.10.1.tar.bz2' | sha1sum -c - \
+    && tar --strip-components=1 -xjf perl-5.10.1.tar.bz2 -C /usr/src/perl \
+    && rm perl-5.10.1.tar.bz2 \
     && cat DevelPatchPerl.patch | patch -p1
-    && ./Configure -Duse64bitall -A ccflags=-fwrapv -des \
+    && ./Configure -Dusethreads -Duse64bitall -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && make test_harness \
     && make install \
@@ -26,4 +26,4 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.18.4.tar.bz2 
 
 WORKDIR /root
 
-CMD ["perl5.18.4","-de0"]
+CMD ["perl5.10.1","-de0"]
