@@ -1,0 +1,511 @@
+From 145264f14350f778df5efed47ec74d463ad8c941 Mon Sep 17 00:00:00 2001
+From: Peter Martini <PeterCMartini@GMail.com>
+Date: Wed, 15 Apr 2015 22:36:04 -0400
+Subject: [PATCH] tmp
+
+---
+ cpan/Archive-Tar/t/02_methods.t     |  14 +++
+ ext/Hash-Util-FieldHash/t/10_hash.t |  18 +++-
+ ext/ODBM_File/hints/linux.pl        |   6 +-
+ hints/linux.sh                      | 166 ++++++++++++++++++++++++++----------
+ hv.c                                |  26 ++----
+ make_ext.pl                         |   4 +
+ patchlevel.h                        |   1 +
+ t/op/hash.t                         |  20 ++++-
+ 8 files changed, 180 insertions(+), 75 deletions(-)
+ mode change 100755 => 100644 t/op/hash.t
+
+diff --git a/cpan/Archive-Tar/t/02_methods.t b/cpan/Archive-Tar/t/02_methods.t
+index e400dda..e25e31a 100755
+--- a/cpan/Archive-Tar/t/02_methods.t
++++ b/cpan/Archive-Tar/t/02_methods.t
+@@ -70,6 +70,20 @@ my $LONG_FILE = qq[directory/really-really-really-really-really-really-really-re
+ my $TOO_LONG    =   ($^O eq 'MSWin32' or $^O eq 'cygwin' or $^O eq 'VMS')
+                     && length( cwd(). $LONG_FILE ) > 247;
+ 
++if(!$TOO_LONG) {
++    my $alt = File::Spec->catfile( cwd(), $LONG_FILE);
++    eval 'mkpath([$alt]);';
++    if($@)
++    {
++        $TOO_LONG = 1;
++    }
++    else
++    {
++        $@ = '';
++        my $base = File::Spec->catfile( cwd(), 'directory');
++        rmtree $base;
++    }
++}
+ ### warn if we are going to skip long file names
+ if ($TOO_LONG) {
+     diag("No long filename support - long filename extraction disabled") if ! $ENV{PERL_CORE};
+diff --git a/ext/Hash-Util-FieldHash/t/10_hash.t b/ext/Hash-Util-FieldHash/t/10_hash.t
+index 2cfb4e8..d58f053 100755
+--- a/ext/Hash-Util-FieldHash/t/10_hash.t
++++ b/ext/Hash-Util-FieldHash/t/10_hash.t
+@@ -38,15 +38,29 @@ use constant START     => "a";
+ 
+ # some initial hash data
+ fieldhash my %h2;
+-%h2 = map {$_ => 1} 'a'..'cc';
++my $counter= "a";
++$h2{$counter++}++ while $counter ne 'cd';
+ 
+ ok (!Internals::HvREHASH(%h2), 
+     "starting with pre-populated non-pathological hash (rehash flag if off)");
+ 
+ my @keys = get_keys(\%h2);
++my $buckets= buckets(\%h2);
+ $h2{$_}++ for @keys;
++$h2{$counter++}++ while buckets(\%h2) == $buckets; # force a split
+ ok (Internals::HvREHASH(%h2), 
+-    scalar(@keys) . " colliding into the same bucket keys are triggering rehash");
++    scalar(@keys) . " colliding into the same bucket keys are triggering rehash after split");
++
++# returns the number of buckets in a hash
++sub buckets {
++    my $hr = shift;
++    my $keys_buckets= scalar(%$hr);
++    if ($keys_buckets=~m!/([0-9]+)\z!) {
++        return 0+$1;
++    } else {
++        return 8;
++    }
++}
+ 
+ sub get_keys {
+     my $hr = shift;
+diff --git a/ext/ODBM_File/hints/linux.pl b/ext/ODBM_File/hints/linux.pl
+index f8ca492..204bba0 100644
+--- a/ext/ODBM_File/hints/linux.pl
++++ b/ext/ODBM_File/hints/linux.pl
+@@ -1,8 +1,8 @@
+ # uses GDBM dbm compatibility feature - at least on SuSE 8.0
+ $self->{LIBS} = ['-lgdbm'];
+ 
+-# Debian/Ubuntu have /usr/lib/libgdbm_compat.so.3* but not this file,
++# Debian/Ubuntu have libgdbm_compat.so but not this file,
+ # so linking may fail
+-if (-e '/usr/lib/libgdbm_compat.so' or -e '/usr/lib64/libgdbm_compat.so') {
+-    $self->{LIBS}->[0] .= ' -lgdbm_compat';
++foreach (split / /, $Config{libpth}) {
++    $self->{LIBS}->[0] .= ' -lgdbm_compat' if -e $_.'/libgdbm_compat.so';
+ }
+diff --git a/hints/linux.sh b/hints/linux.sh
+index 0519eca..fb5a46e 100644
+--- a/hints/linux.sh
++++ b/hints/linux.sh
+@@ -13,11 +13,14 @@
+ # Updated Thu May 30 10:50:22 EDT 1996 by <doughera@lafayette.edu>
+ 
+ # Updated Fri Jun 21 11:07:54 EDT 1996
+-# NDBM support for ELF renabled by <kjahds@kjahds.com>
++# NDBM support for ELF re-enabled by <kjahds@kjahds.com>
+ 
+ # No version of Linux supports setuid scripts.
+ d_suidsafe='undef'
+ 
++# No version of Linux needs libutil for perl.
++i_libutil='undef'
++
+ # Debian and Red Hat, and perhaps other vendors, provide both runtime and
+ # development packages for some libraries.  The runtime packages contain shared
+ # libraries with version information in their names (e.g., libgdbm.so.1.7.3);
+@@ -36,7 +39,7 @@ d_suidsafe='undef'
+ # SuSE Linux can be used as cross-compilation host for Cray XT4 Catamount/Qk.
+ if test -d /opt/xt-pe
+ then
+-  case "`cc -V 2>&1`" in
++  case "`${cc:-cc} -V 2>&1`" in
+   *catamount*) . hints/catamount.sh; return ;;
+   esac
+ fi
+@@ -55,17 +58,10 @@ shift
+ libswanted="$*"
+ 
+ # Debian 4.0 puts ndbm in the -lgdbm_compat library.
+-libswanted="$libswanted gdbm_compat"
+-
+-# If you have glibc, then report the version for ./myconfig bug reporting.
+-# (Configure doesn't need to know the specific version since it just uses
+-# gcc to load the library for all tests.)
+-# We don't use __GLIBC__ and  __GLIBC_MINOR__ because they
+-# are insufficiently precise to distinguish things like
+-# libc-2.0.6 and libc-2.0.7.
+-if test -L /lib/libc.so.6; then
+-    libc=`ls -l /lib/libc.so.6 | awk '{print $NF}'`
+-    libc=/lib/$libc
++echo $libs
++if echo " $libswanted " | grep -q ' gdbm '; then
++    # Only add if gdbm is in libswanted.
++    libswanted="$libswanted gdbm_compat"
+ fi
+ 
+ # Configure may fail to find lstat() since it's a static/inline
+@@ -84,6 +80,9 @@ case "$usemymalloc" in
+ '') usemymalloc='n' ;;
+ esac
+ 
++uname_minus_m="`$run uname -m 2>/dev/null`"
++uname_minus_m="${uname_minus_m:-"$targetarch"}"
++
+ # Check if we're about to use Intel's ICC compiler
+ case "`${cc:-cc} -V 2>&1`" in
+ *"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
+@@ -97,7 +96,7 @@ case "`${cc:-cc} -V 2>&1`" in
+     # The -no-gcc flag is needed otherwise, icc pretends (poorly) to be gcc
+     ccflags="-we147 -mp -no-gcc $ccflags"
+     # Prevent relocation errors on 64bits arch
+-    case "`uname -m`" in
++    case "$uname_minus_m" in
+ 	*ia64*|*x86_64*)
+ 	    cccdlflags='-fPIC'
+ 	;;
+@@ -131,7 +130,7 @@ case "$optimize" in
+ # use -O2 by default ; -O3 doesn't seem to bring significant benefits with gcc
+ '')
+     optimize='-O2'
+-    case "`uname -m`" in
++    case "$uname_minus_m" in
+         ppc*)
+             # on ppc, it seems that gcc (at least gcc 3.3.2) isn't happy
+             # with -O2 ; so downgrade to -O1.
+@@ -160,10 +159,18 @@ esac
+ # This unconditionally uses gcc because even if the user is using another
+ # compiler, we still need to find the math library and friends, and I don't
+ # know how other compilers will cope with that situation.
++# Morever, if the user has their own gcc earlier in $PATH than the system gcc,
++# we don't want its libraries. So we try to prefer the system gcc
+ # Still, as an escape hatch, allow Configure command line overrides to
+ # plibpth to bypass this check.
++if [ -x /usr/bin/gcc ] ; then
++    gcc=/usr/bin/gcc
++else
++    gcc=gcc
++fi
++
+ case "$plibpth" in
+-'') plibpth=`gcc -print-search-dirs | grep libraries |
++'') plibpth=`LANG=C LC_ALL=C $gcc $ccflags $ldflags -print-search-dirs | grep libraries |
+ 	cut -f2- -d= | tr ':' $trnl | grep -v 'gcc' | sed -e 's:/$::'`
+     set X $plibpth # Collapse all entries on one line
+     shift
+@@ -171,6 +178,49 @@ case "$plibpth" in
+     ;;
+ esac
+ 
++# libquadmath is sometimes installed as gcc internal library,
++# so contrary to our usual policy of *not* looking at gcc internal
++# directories we now *do* look at them, in case they contain
++# the quadmath library.
++# XXX This may apply to other gcc internal libraries, if such exist.
++# XXX This could be at Configure level, but then the $gcc is messy.
++case "$usequadmath" in
++"$define")
++  for d in `LANG=C LC_ALL=C $gcc $ccflags $ldflags -print-search-dirs | grep libraries | cut -f2- -d= | tr ':' $trnl | grep 'gcc' | sed -e 's:/$::'`
++  do
++    case `ls $d/*libquadmath*$so* 2>/dev/null` in
++    $d/*libquadmath*$so*) xlibpth="$xlibpth $d" ;;
++    esac
++  done
++  ;;
++esac
++
++case "$libc" in
++'')
++# If you have glibc, then report the version for ./myconfig bug reporting.
++# (Configure doesn't need to know the specific version since it just uses
++# gcc to load the library for all tests.)
++# We don't use __GLIBC__ and  __GLIBC_MINOR__ because they
++# are insufficiently precise to distinguish things like
++# libc-2.0.6 and libc-2.0.7.
++    for p in $plibpth
++    do
++        for trylib in libc.so.6 libc.so
++        do
++            if $test -e $p/$trylib; then
++                libc=`ls -l $p/$trylib | awk '{print $NF}'`
++                if $test "X$libc" != X; then
++                    break
++                fi
++            fi
++        done
++        if $test "X$libc" != X; then
++            break
++        fi
++    done
++    ;;
++esac
++
+ # Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
+ # for this test.
+ cat >try.c <<'EOM'
+@@ -191,7 +241,7 @@ main() {
+ 	exit(0); /* succeed (yes, it's ELF) */
+ }
+ EOM
+-if ${cc:-gcc} try.c >/dev/null 2>&1 && $run ./a.out; then
++if ${cc:-gcc} $ccflags $ldflags try.c >/dev/null 2>&1 && $run ./a.out; then
+     cat <<'EOM' >&4
+ 
+ You appear to have ELF support.  I'll try to use it for dynamic loading.
+@@ -257,7 +307,7 @@ fi
+ 
+ rm -f try.c a.out
+ 
+-if /bin/sh -c exit; then
++if ${sh:-/bin/sh} -c exit; then
+   echo ''
+   echo 'You appear to have a working bash.  Good.'
+ else
+@@ -324,7 +374,7 @@ fi
+ #'osfmach3ppc') ccdlflags='-Wl,-E' ;;
+ #esac
+ 
+-case "`uname -m`" in
++case "$uname_minus_m" in
+ sparc*)
+ 	case "$cccdlflags" in
+ 	*-fpic*) cccdlflags="`echo $cccdlflags|sed 's/-fpic/-fPIC/'`" ;;
+@@ -339,30 +389,62 @@ esac
+ # version of -lgdbm which is a bad idea. So if we have 'nm'
+ # make sure it can read the file
+ # NI-S 2003/08/07
+-if [ -r /usr/lib/libndbm.so  -a  -x /usr/bin/nm ] ; then
+-   if /usr/bin/nm /usr/lib/libndbm.so >/dev/null 2>&1 ; then
+-    echo 'Your shared -lndbm seems to be a real library.'
+-   else
+-    echo 'Your shared -lndbm is not a real library.'
+-    set `echo X "$libswanted "| sed -e 's/ ndbm / /'`
+-    shift
+-    libswanted="$*"
+-   fi
+-fi
++case "$nm" in
++    '') ;;
++    *)
++    for p in $plibpth
++    do
++        if $test -r $p/libndbm.so; then
++            if $nm $p/libndbm.so >/dev/null 2>&1 ; then
++                echo 'Your shared -lndbm seems to be a real library.'
++                _libndbm_real=1
++                break
++            fi
++        fi
++    done
++    if $test "X$_libndbm_real" = X; then
++        echo 'Your shared -lndbm is not a real library.'
++        set `echo X "$libswanted "| sed -e 's/ ndbm / /'`
++        shift
++        libswanted="$*"
++    fi
++    ;;
++esac
+ 
++# Linux on Synology.
++if [ -f /etc/synoinfo.conf -a -d /usr/syno ]; then
++    # Tested on Synology DS213 and DS413
++    #  OS version info in /etc.defaults/VERSION
++    #  http://forum.synology.com/wiki/index.php/What_kind_of_CPU_does_my_NAS_have
++    # Synology DS213 running DSM 4.3-3810-0 (2013-11-06)
++    #  CPU model Marvell Kirkwood mv6282 ARMv5te
++    #  Linux 2.6.32.12 #3810 Wed Nov 6 05:13:41 CST 2013 armv5tel GNU/Linux
++    # Synology DS413 running DSM 4.3-3810-0 (2013-11-06)
++    #  CPU model Freescale QorIQ P1022 ppc (e500v2)
++    #  linux 2.6.32.12 #3810 ppc GNU/Linux
++    # All development stuff installed with ipkg is in /opt
++    if [ "$LANG" = "" -o "$LANG" = "C" ]; then
++	echo 'Your LANG is safe'
++    else
++	echo 'Please set $LANG to "C". All other $LANG settings will cause havoc' >&4
++	LANG=C
++    fi
++    echo 'Setting up to use /opt/*' >&4
++    locincpth="/opt/include $locincpth"
++    libpth="/opt/lib $libpth"
++    libspth="/opt/lib $libspth"
++    loclibpth="/opt/lib $loclibpth"
++    # POSIX will not link without the pthread lib
++    libswanted="$libswanted pthread"
++    echo "$libswanted" >&4
++fi
+ 
+ # This script UU/usethreads.cbu will get 'called-back' by Configure
+ # after it has prompted the user for whether to use threads.
+ cat > UU/usethreads.cbu <<'EOCBU'
+-if getconf GNU_LIBPTHREAD_VERSION | grep NPTL >/dev/null 2>/dev/null
+-then
+-    threadshavepids=""
+-else
+-    threadshavepids="-DTHREADS_HAVE_PIDS"
+-fi
+ case "$usethreads" in
+ $define|true|[yY]*)
+-        ccflags="-D_REENTRANT -D_GNU_SOURCE $threadshavepids $ccflags"
++        ccflags="-D_REENTRANT -D_GNU_SOURCE $ccflags"
+         if echo $libswanted | grep -v pthread >/dev/null
+         then
+             set `echo X "$libswanted "| sed -e 's/ c / pthread c /'`
+@@ -409,16 +491,6 @@ $define|true|[yY]*)
+     ;;
+ esac
+ 
+-# If we are using g++ we must use nm and force ourselves to use
+-# the /usr/lib/libc.a (resetting the libc below to an empty string
+-# makes Configure to look for the right one) because the symbol
+-# scanning tricks of Configure will crash and burn horribly.
+-case "$cc" in
+-*g++*) usenm=true
+-       libc=''
+-       ;;
+-esac
+-
+ # If using g++, the Configure scan for dlopen() and (especially)
+ # dlerror() might fail, easier just to forcibly hint them in.
+ case "$cc" in
+@@ -442,7 +514,7 @@ then
+        DBLIB="$DBDIR/libdb.so"
+        if [ -f $DBLIB ]
+        then
+-         if nm -u $DBLIB | grep pthread >/dev/null
++         if ${nm:-nm} -u $DBLIB 2>/dev/null | grep pthread >/dev/null
+          then
+            if ldd $DBLIB | grep pthread >/dev/null
+            then
+diff --git a/hv.c b/hv.c
+index 89c6456..8659678 100644
+--- a/hv.c
++++ b/hv.c
+@@ -35,7 +35,8 @@ holds the key and hash value.
+ #define PERL_HASH_INTERNAL_ACCESS
+ #include "perl.h"
+ 
+-#define HV_MAX_LENGTH_BEFORE_SPLIT 14
++#define HV_MAX_LENGTH_BEFORE_REHASH 14
++#define SHOULD_DO_HSPLIT(xhv) ((xhv)->xhv_keys > (xhv)->xhv_max) /* HvTOTALKEYS(hv) > HvMAX(hv) */
+ 
+ static const char S_strtab_error[]
+     = "Cannot modify shared string table in hv_%s";
+@@ -818,23 +819,8 @@ Perl_hv_common(pTHX_ HV *hv, SV *keysv, const char *key, STRLEN klen,
+ 	xhv->xhv_keys++; /* HvTOTALKEYS(hv)++ */
+ 	if (!counter) {				/* initial entry? */
+ 	    xhv->xhv_fill++; /* HvFILL(hv)++ */
+-	} else if (xhv->xhv_keys > (IV)xhv->xhv_max) {
++	} else if ( SHOULD_DO_HSPLIT(xhv) ) {
+ 	    hsplit(hv);
+-	} else if(!HvREHASH(hv)) {
+-	    U32 n_links = 1;
+-
+-	    while ((counter = HeNEXT(counter)))
+-		n_links++;
+-
+-	    if (n_links > HV_MAX_LENGTH_BEFORE_SPLIT) {
+-		/* Use only the old HvKEYS(hv) > HvMAX(hv) condition to limit
+-		   bucket splits on a rehashed hash, as we're not going to
+-		   split it again, and if someone is lucky (evil) enough to
+-		   get all the keys in one list they could exhaust our memory
+-		   as we repeatedly double the number of buckets on every
+-		   entry. Linear search feels a less worse thing to do.  */
+-		hsplit(hv);
+-	    }
+ 	}
+     }
+ 
+@@ -1180,7 +1166,7 @@ S_hsplit(pTHX_ HV *hv)
+ 
+ 
+     /* Pick your policy for "hashing isn't working" here:  */
+-    if (longest_chain <= HV_MAX_LENGTH_BEFORE_SPLIT /* split worked?  */
++    if (longest_chain <= HV_MAX_LENGTH_BEFORE_REHASH /* split worked?  */
+ 	|| HvREHASH(hv)) {
+ 	return;
+     }
+@@ -2551,8 +2537,8 @@ S_share_hek_flags(pTHX_ const char *str, I32 len, register U32 hash, int flags)
+ 	xhv->xhv_keys++; /* HvTOTALKEYS(hv)++ */
+ 	if (!next) {			/* initial entry? */
+ 	    xhv->xhv_fill++; /* HvFILL(hv)++ */
+-	} else if (xhv->xhv_keys > (IV)xhv->xhv_max /* HvKEYS(hv) > HvMAX(hv) */) {
+-		hsplit(PL_strtab);
++	} else if ( SHOULD_DO_HSPLIT(xhv) ) {
++            hsplit(PL_strtab);
+ 	}
+     }
+ 
+diff --git a/make_ext.pl b/make_ext.pl
+index de26d84..52b0492 100644
+--- a/make_ext.pl
++++ b/make_ext.pl
+@@ -363,6 +363,10 @@ WriteMakefile(
+ EOM
+ 	    close $fh or die "Can't close Makefile.PL: $!";
+ 	}
++  eval {
++    my $ftime = time - 4;
++    utime $ftime, $ftime, 'Makefile.PL';
++  };
+ 	print "\nRunning Makefile.PL in $ext_dir\n";
+ 
+ 	# Presumably this can be simplified
+diff --git a/patchlevel.h b/patchlevel.h
+index f1a12bd..61bf49d 100644
+--- a/patchlevel.h
++++ b/patchlevel.h
+@@ -131,6 +131,7 @@ static const char * const local_patches[] = {
+ 	,"uncommitted-changes"
+ #endif
+ 	PERL_GIT_UNPUSHED_COMMITS    	/* do not remove this line */
++	,"Devel::PatchPerl 1.32"
+ 	,NULL
+ };
+ 
+diff --git a/t/op/hash.t b/t/op/hash.t
+old mode 100755
+new mode 100644
+index 9bde518..45eb782
+--- a/t/op/hash.t
++++ b/t/op/hash.t
+@@ -39,22 +39,36 @@ use constant THRESHOLD => 14;
+ use constant START     => "a";
+ 
+ # some initial hash data
+-my %h2 = map {$_ => 1} 'a'..'cc';
++my %h2;
++my $counter= "a";
++$h2{$counter++}++ while $counter ne 'cd';
+ 
+ ok (!Internals::HvREHASH(%h2), 
+     "starting with pre-populated non-pathological hash (rehash flag if off)");
+ 
+ my @keys = get_keys(\%h2);
++my $buckets= buckets(\%h2);
+ $h2{$_}++ for @keys;
++$h2{$counter++}++ while buckets(\%h2) == $buckets; # force a split
+ ok (Internals::HvREHASH(%h2), 
+-    scalar(@keys) . " colliding into the same bucket keys are triggering rehash");
++    scalar(@keys) . " colliding into the same bucket keys are triggering rehash after split");
++
++# returns the number of buckets in a hash
++sub buckets {
++    my $hr = shift;
++    my $keys_buckets= scalar(%$hr);
++    if ($keys_buckets=~m!/([0-9]+)\z!) {
++        return 0+$1;
++    } else {
++        return 8;
++    }
++}
+ 
+ sub get_keys {
+     my $hr = shift;
+ 
+     # the minimum of bits required to mount the attack on a hash
+     my $min_bits = log(THRESHOLD)/log(2);
+-
+     # if the hash has already been populated with a significant amount
+     # of entries the number of mask bits can be higher
+     my $keys = scalar keys %$hr;
+-- 
+1.9.1
+

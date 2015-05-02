@@ -1,4 +1,28 @@
 releases:
+  - version: 5.8.9
+    sha1:    19843b5a7585cf35d96c07dbcd419bbdd5813617
+    pause:   NWCLARK
+    extra_flags: "-A ccflags=-fwrapv"
+    test_parallel: no
+
+  - version: 5.10.1
+    sha1:    98b762b5cd4fb76dd354dfa5ba0d21bc2acacaf2
+    pause:   DAPM
+    extra_flags: "-A ccflags=-fwrapv"
+    test_parallel: no
+
+  - version: 5.12.5
+    sha1:    812139ceef512eb8458af29ffbf46d78ef26c12a
+    pause:   DOM
+    extra_flags: "-A ccflags=-fwrapv"
+    test_parallel: no
+
+  - version: 5.14.4
+    sha1:    3527c9e26f985cba98796439bf555fde8be73cdf
+    pause:   DAPM
+    extra_flags: "-A ccflags=-fwrapv"
+    test_parallel: no
+
   - version: 5.16.3
     sha1:    060bc17cf9f142d043f9bf7b861422ec624875ea
     pause:   RJBS
@@ -9,7 +33,9 @@ releases:
     sha1:    69c34558a0a939a7adbbc1de48c06ea418d81e27
     pause:   RJBS
     extra_flags: "-A ccflags=-fwrapv"
+    test_parallel: no
 
   - version: 5.20.2
     sha1:    63126c683b4c79c35008a47d56f7beae876c569f
     pause:   SHAY
+    test_parallel: no
