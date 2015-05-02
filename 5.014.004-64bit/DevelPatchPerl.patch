@@ -1,16 +1,5 @@
-From b3c3b6bd0950d7524e02afefad2323ae8404fcda Mon Sep 17 00:00:00 2001
-From: Peter Martini <PeterCMartini@GMail.com>
-Date: Wed, 15 Apr 2015 22:36:08 -0400
-Subject: [PATCH] tmp
-
----
- hints/linux.sh | 153 ++++++++++++++++++++++++++++++++++++++++-----------------
- make_ext.pl    |   4 ++
- patchlevel.h   |   1 +
- 3 files changed, 112 insertions(+), 46 deletions(-)
-
 diff --git a/hints/linux.sh b/hints/linux.sh
-index d0ac9fa..fb5a46e 100644
+index d0ac9fa..956adfc 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -39,7 +39,7 @@ i_libutil='undef'
@@ -81,27 +70,10 @@ index d0ac9fa..fb5a46e 100644
  	cut -f2- -d= | tr ':' $trnl | grep -v 'gcc' | sed -e 's:/$::'`
      set X $plibpth # Collapse all entries on one line
      shift
-@@ -182,6 +178,49 @@ case "$plibpth" in
+@@ -182,6 +178,32 @@ case "$plibpth" in
      ;;
  esac
  
-+# libquadmath is sometimes installed as gcc internal library,
-+# so contrary to our usual policy of *not* looking at gcc internal
-+# directories we now *do* look at them, in case they contain
-+# the quadmath library.
-+# XXX This may apply to other gcc internal libraries, if such exist.
-+# XXX This could be at Configure level, but then the $gcc is messy.
-+case "$usequadmath" in
-+"$define")
-+  for d in `LANG=C LC_ALL=C $gcc $ccflags $ldflags -print-search-dirs | grep libraries | cut -f2- -d= | tr ':' $trnl | grep 'gcc' | sed -e 's:/$::'`
-+  do
-+    case `ls $d/*libquadmath*$so* 2>/dev/null` in
-+    $d/*libquadmath*$so*) xlibpth="$xlibpth $d" ;;
-+    esac
-+  done
-+  ;;
-+esac
-+
 +case "$libc" in
 +'')
 +# If you have glibc, then report the version for ./myconfig bug reporting.
@@ -131,7 +103,7 @@ index d0ac9fa..fb5a46e 100644
  # Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
  # for this test.
  cat >try.c <<'EOM'
-@@ -202,7 +241,7 @@ main() {
+@@ -202,7 +224,7 @@ main() {
  	exit(0); /* succeed (yes, it's ELF) */
  }
  EOM
@@ -140,7 +112,7 @@ index d0ac9fa..fb5a46e 100644
      cat <<'EOM' >&4
  
  You appear to have ELF support.  I'll try to use it for dynamic loading.
-@@ -268,7 +307,7 @@ fi
+@@ -268,7 +290,7 @@ fi
  
  rm -f try.c a.out
  
@@ -149,7 +121,7 @@ index d0ac9fa..fb5a46e 100644
    echo ''
    echo 'You appear to have a working bash.  Good.'
  else
-@@ -335,7 +374,7 @@ fi
+@@ -335,7 +357,7 @@ fi
  #'osfmach3ppc') ccdlflags='-Wl,-E' ;;
  #esac
  
@@ -158,7 +130,7 @@ index d0ac9fa..fb5a46e 100644
  sparc*)
  	case "$cccdlflags" in
  	*-fpic*) cccdlflags="`echo $cccdlflags|sed 's/-fpic/-fPIC/'`" ;;
-@@ -350,30 +389,62 @@ esac
+@@ -350,30 +372,62 @@ esac
  # version of -lgdbm which is a bad idea. So if we have 'nm'
  # make sure it can read the file
  # NI-S 2003/08/07
@@ -238,7 +210,7 @@ index d0ac9fa..fb5a46e 100644
          if echo $libswanted | grep -v pthread >/dev/null
          then
              set `echo X "$libswanted "| sed -e 's/ c / pthread c /'`
-@@ -420,16 +491,6 @@ $define|true|[yY]*)
+@@ -420,16 +474,6 @@ $define|true|[yY]*)
      ;;
  esac
  
@@ -255,12 +227,12 @@ index d0ac9fa..fb5a46e 100644
  # If using g++, the Configure scan for dlopen() and (especially)
  # dlerror() might fail, easier just to forcibly hint them in.
  case "$cc" in
-@@ -453,7 +514,7 @@ then
+@@ -453,7 +497,7 @@ then
         DBLIB="$DBDIR/libdb.so"
         if [ -f $DBLIB ]
         then
 -         if nm -u $DBLIB | grep pthread >/dev/null
-+         if ${nm:-nm} -u $DBLIB 2>/dev/null | grep pthread >/dev/null
++         if ${nm:-nm} -u $DBLIB | grep pthread >/dev/null
           then
             if ldd $DBLIB | grep pthread >/dev/null
             then
@@ -279,18 +251,27 @@ index 13a15b4..a564bb3 100644
  	print "\nRunning Makefile.PL in $ext_dir\n";
  
  	# Presumably this can be simplified
-diff --git a/patchlevel.h b/patchlevel.h
-index 4d9cd6d..c5ac24a 100644
---- a/patchlevel.h
-+++ b/patchlevel.h
-@@ -137,6 +137,7 @@ static const char * const local_patches[] = {
- 	,"uncommitted-changes"
- #endif
- 	PERL_GIT_UNPUSHED_COMMITS    	/* do not remove this line */
-+	,"Devel::PatchPerl 1.32"
- 	,NULL
- };
- 
--- 
-1.9.1
+diff --git a/Configure b/Configure
+index a780b81..3ae16ca 100755
+--- a/Configure
++++ b/Configure
+@@ -21633,15 +21633,16 @@ $cc -o try -Dcpp_stuff=$cpp_stuff $optimize \$ccflags $ldflags try.c $libs && $r
+ EOSH
+ chmod +x Cppsym.try
+ $eunicefix Cppsym.try
+-./Cppsym < Cppsym.know > Cppsym.true
++./Cppsym < Cppsym.know | $sort | $uniq > Cppsym.true
+ : Add in any linux cpp "predefined macros":
+ case "$osname::$gccversion" in
+   *linux*::*.*|*gnukfreebsd*::*.*|gnu::*.*)
+     tHdrH=_tmpHdr
+     rm -f $tHdrH'.h' $tHdrH
+     touch $tHdrH'.h'
++    # Filter out macro arguments, such as Linux's __INT8_C(c)
+     if $cpp -dM $tHdrH'.h' > $tHdrH'_cppsym.h' && [ -s $tHdrH'_cppsym.h' ]; then
+-       sed 's/#define[\ \  ]*//;s/[\ \     ].*$//' <$tHdrH'_cppsym.h' >$tHdrH'_cppsym.real'
++       sed -e 's/#define[\ \  ]*//;s/[\ \     ].*$//' -e 's/(.*//' <$tHdrH'_cppsym.h' >$tHdrH'_cppsym.real'
+        if [ -s $tHdrH'_cppsym.real' ]; then
+ 	  cat $tHdrH'_cppsym.real' Cppsym.know | sort | uniq | ./Cppsym | sort | uniq > Cppsym.true
+        fi
 
