@@ -1,21 +1,3 @@
-From c943b5fe69a7cf689217131f90470090ce8e02b8 Mon Sep 17 00:00:00 2001
-From: Peter Martini <PeterCMartini@GMail.com>
-Date: Wed, 15 Apr 2015 22:36:00 -0400
-Subject: [PATCH] tmp
-
----
- ext/Hash-Util-FieldHash/t/10_hash.t |  18 +++-
- ext/ODBM_File/hints/linux.pl        |   6 +-
- hints/linux.sh                      | 189 +++++++++++++++++++++++++++---------
- hv.c                                |  26 ++---
- lib/Archive/Tar/t/02_methods.t      |  14 +++
- make_ext.pl                         |   4 +
- patchlevel.h                        |   1 +
- perl.c                              |   2 +-
- t/op/hash.t                         |  20 +++-
- 9 files changed, 205 insertions(+), 75 deletions(-)
- mode change 100755 => 100644 t/op/hash.t
-
 diff --git a/ext/Hash-Util-FieldHash/t/10_hash.t b/ext/Hash-Util-FieldHash/t/10_hash.t
 index 29c2f4d..c266b6a 100755
 --- a/ext/Hash-Util-FieldHash/t/10_hash.t
@@ -534,6 +516,3 @@ index 9bde518..45eb782
      # if the hash has already been populated with a significant amount
      # of entries the number of mask bits can be higher
      my $keys = scalar keys %$hr;
--- 
-1.9.1
-

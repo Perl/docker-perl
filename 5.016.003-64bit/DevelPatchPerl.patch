@@ -1,13 +1,3 @@
-From 8826551a8a505d9d3e091aa31943d0fc6ef92cba Mon Sep 17 00:00:00 2001
-From: Peter Martini <PeterCMartini@GMail.com>
-Date: Wed, 15 Apr 2015 22:36:13 -0400
-Subject: [PATCH] tmp
-
----
- hints/linux.sh | 145 +++++++++++++++++++++++++++++++++++++++++----------------
- patchlevel.h   |   1 +
- 2 files changed, 107 insertions(+), 39 deletions(-)
-
 diff --git a/hints/linux.sh b/hints/linux.sh
 index 688c68d..fb5a46e 100644
 --- a/hints/linux.sh
@@ -261,6 +251,3 @@ index be508d1..11ae2e8 100644
  	,NULL
  };
  
--- 
-1.9.1
-
