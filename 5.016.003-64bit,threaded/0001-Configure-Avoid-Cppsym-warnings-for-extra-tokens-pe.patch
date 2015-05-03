@@ -1,0 +1,43 @@
+From 6f87f404fa51739971a4068da1f11443024f3fc4 Mon Sep 17 00:00:00 2001
+From: Andy Dougherty <doughera@lafayette.edu>
+Date: Wed, 6 Jun 2012 11:12:58 -0400
+Subject: [perl #113024] Configure: Avoid Cppsym warnings for extra tokens
+ [perl #113024]
+
+The cppsymbols can include macros such as __INT16_C(c), which can't
+be tested with a simple #ifdef.  This patch strips off the opening
+parenthesis and everything following it.  These macros were generated
+by cpp -dM.
+
+Also ensure Cppsym.true list is sorted for later input to comm.
+(I noticed this while testing this change on Solaris.)
+---
+ Configure | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Configure b/Configure
+index a780b81..3ae16ca 100755
+--- a/Configure
++++ b/Configure
+@@ -21936,15 +21936,16 @@ $cc -o try -Dcpp_stuff=$cpp_stuff $optimize \$ccflags $ldflags try.c $libs && $r
+ EOSH
+ chmod +x Cppsym.try
+ $eunicefix Cppsym.try
+-./Cppsym < Cppsym.know > Cppsym.true
++./Cppsym < Cppsym.know | $sort | $uniq > Cppsym.true
+ : Add in any linux cpp "predefined macros":
+ case "$osname::$gccversion" in
+   *linux*::*.*|*gnukfreebsd*::*.*|gnu::*.*)
+     tHdrH=_tmpHdr
+     rm -f $tHdrH'.h' $tHdrH
+     touch $tHdrH'.h'
++    # Filter out macro arguments, such as Linux's __INT8_C(c)
+     if $cpp -dM $tHdrH'.h' > $tHdrH'_cppsym.h' && [ -s $tHdrH'_cppsym.h' ]; then
+-       sed 's/#define[\ \  ]*//;s/[\ \     ].*$//' <$tHdrH'_cppsym.h' >$tHdrH'_cppsym.real'
++       sed -e 's/#define[\ \  ]*//;s/[\ \     ].*$//' -e 's/(.*//' <$tHdrH'_cppsym.h' >$tHdrH'_cppsym.real'
+        if [ -s $tHdrH'_cppsym.real' ]; then
+ 	  cat $tHdrH'_cppsym.real' Cppsym.know | sort | uniq | ./Cppsym | sort | uniq > Cppsym.true
+        fi
+-- 
+2.1.4
+
