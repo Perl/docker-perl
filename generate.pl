@@ -78,7 +78,7 @@ for my $release (@{$yaml->{releases}}) {
     die "Couldn't create a temp git repo for $release->{version}" if $? != 0;
     Devel::PatchPerl->patch_source($release->{version}, $dir);
     $patch = qx{
-      cd $dir && git commit -am tmp >/dev/null 2>/dev/null && git format-patch -1 --stdout
+      cd $dir && git diff
     };
     die "Couldn't create a Devel::PatchPerl patch for $release->{version}" if $? != 0;
   }
@@ -187,14 +187,14 @@ RUN apt-get update \
     && rm -fr /var/lib/apt/lists/*
 
 RUN mkdir /usr/src/perl
-COPY DevelPatchPerl.patch /usr/src/perl/
+COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
     && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
-    && cat DevelPatchPerl.patch | patch -p1 \
+    && cat *.patch | patch -p1 \
     && ./Configure {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
     && {{test}} \
