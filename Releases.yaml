@@ -39,3 +39,8 @@ releases:
     sha1:    63126c683b4c79c35008a47d56f7beae876c569f
     pause:   SHAY
     test_parallel: no
+
+  - version: 5.22.0
+    sha1:    400338c91c56420d98142cbfcb84d418cae2c98c
+    pause:   RJBS
+    test_parallel: no
