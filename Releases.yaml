@@ -35,12 +35,10 @@ releases:
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
 
-  - version: 5.20.2
-    sha1:    63126c683b4c79c35008a47d56f7beae876c569f
+  - version: 5.20.3
+    sha1:    eedf9e3be3c83bef15911996ed18703cffe4d113
     pause:   SHAY
-    test_parallel: no
 
   - version: 5.22.0
     sha1:    400338c91c56420d98142cbfcb84d418cae2c98c
     pause:   RJBS
-    test_parallel: no
