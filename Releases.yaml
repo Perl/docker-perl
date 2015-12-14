@@ -39,6 +39,6 @@ releases:
     sha1:    eedf9e3be3c83bef15911996ed18703cffe4d113
     pause:   SHAY
 
-  - version: 5.22.0
-    sha1:    400338c91c56420d98142cbfcb84d418cae2c98c
-    pause:   RJBS
+  - version: 5.22.1
+    sha1:    29f9b320b0299577a3e1d02e9e8ef8f26f160332
+    pause:   SHAY

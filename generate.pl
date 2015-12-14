@@ -88,8 +88,8 @@ for my $release (@{$yaml->{releases}}) {
 
   for my $config (keys %builds) {
     my $output = $template;
-    $output =~ s/{{$_}}/$release->{$_}/mg for (qw(version pause extra_flags sha1));
-    $output =~ s/{{args}}/$builds{$config}/mg;
+    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version pause extra_flags sha1));
+    $output =~ s/\{\{args\}\}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
                       ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/),
@@ -104,9 +104,9 @@ for my $release (@{$yaml->{releases}}) {
     }
 
     if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
-        $output =~ s/{{test}}/make test_harness/;
+        $output =~ s/\{\{test\}\}/make test_harness/;
     } elsif (!defined $release->{test_parallel} || $release->{test_parallel} eq "yes") {
-        $output =~ s/{{test}}/TEST_JOBS=\$(nproc) make test_harness/;
+        $output =~ s/\{\{test\}\}/TEST_JOBS=\$(nproc) make test_harness/;
     } else {
         die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
     }
