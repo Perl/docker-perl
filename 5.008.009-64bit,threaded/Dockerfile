@@ -22,7 +22,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/N/NW/NWCLARK/perl-5.8.9.tar.bz
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
     && chmod +x cpanm \
     && ./cpanm App::cpanminus \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl
+    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
 
 WORKDIR /root
 
