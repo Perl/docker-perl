@@ -203,7 +203,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
     && chmod +x cpanm \
     && ./cpanm App::cpanminus \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl
+    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
 
 WORKDIR /root
 
