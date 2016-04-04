@@ -37,8 +37,8 @@ my $template = do {
 };
 
 my %builds = (
-  "64bit"          => "-Duse64bitall",
-  "64bit,threaded" => "-Dusethreads -Duse64bitall",
+  "64bit"          => "-Duse64bitall -Duseshrplib",
+  "64bit,threaded" => "-Dusethreads -Duse64bitall -Duseshrplib",
 );
 
 die_with_sample unless defined $yaml->{releases};
