@@ -9,8 +9,7 @@ ENV PERL_CPANM_OPT --no-wget
 
 RUN set -x \
     && NPROC=$(getconf _NPROCESSORS_ONLN) \
-    && apk add --no-cache make \
-    && apk add --no-cache --virtual .build-deps curl procps tar build-base \
+    && apk add --no-cache --virtual .build-deps curl procps tar build-base make \
     && curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.22.1.tar.bz2 -o perl-5.22.1.tar.bz2 \
     && echo '29f9b320b0299577a3e1d02e9e8ef8f26f160332 *perl-5.22.1.tar.bz2' | sha1sum -c - \
     && tar --strip-components=1 -xjf perl-5.22.1.tar.bz2 -C /usr/src/perl \
@@ -27,6 +26,14 @@ RUN set -x \
     && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
     && chmod +x cpanm \
     && ./cpanm App::cpanminus \
+    && runDeps="$( \
+        scanelf --needed --nobanner --recursive /usr/local \
+            | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+            | sort -u \
+            | xargs -r apk info --installed \
+            | sort -u \
+        )" \
+    && apk add --virtual .perl-rundeps $runDeps make \
     && apk del .build-deps \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
 
