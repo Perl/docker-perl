@@ -1,5 +1,5 @@
 diff --git a/patchlevel.h b/patchlevel.h
-index bd56612..3d5f668 100644
+index bfd796b..69d5fb0 100644
 --- a/patchlevel.h
 +++ b/patchlevel.h
 @@ -137,6 +137,7 @@ static const char * const local_patches[] = {

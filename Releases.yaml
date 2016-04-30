@@ -39,6 +39,6 @@ releases:
     sha1:    eedf9e3be3c83bef15911996ed18703cffe4d113
     pause:   SHAY
 
-  - version: 5.22.1
-    sha1:    29f9b320b0299577a3e1d02e9e8ef8f26f160332
+  - version: 5.22.2
+    sha1:    e2f465446dcd45a7fa3da696037f9ebe73e78e55
     pause:   SHAY
