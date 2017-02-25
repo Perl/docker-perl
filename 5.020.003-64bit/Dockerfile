@@ -10,7 +10,7 @@ COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.20.3.tar.bz2 -o perl-5.20.3.tar.bz2 \
-    && echo 'eedf9e3be3c83bef15911996ed18703cffe4d113 *perl-5.20.3.tar.bz2' | sha1sum -c - \
+    && echo '1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b *perl-5.20.3.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-5.20.3.tar.bz2 -C /usr/src/perl \
     && rm perl-5.20.3.tar.bz2 \
     && cat *.patch | patch -p1 \
