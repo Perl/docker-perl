@@ -39,10 +39,10 @@ releases:
     sha256:  1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b
     pause:   SHAY
 
-  - version: 5.22.2
-    sha256:  f2322b9b04fe0cdbca9fe755360da04892cb6483d44959457cfebc0bcddc8058
+  - version: 5.22.3
+    sha256:  770dd077a67a382501ab195cc75eee0baa5efa3544892c9a713a5bdb2645449f
     pause:   SHAY
 
-  - version: 5.24.0
-    sha256:  62328a53d157e8153b33e137594155f6f8b64418f7f9238210feb809585290e0
-    pause:   RJBS
+  - version: 5.24.1
+    sha256:  482ac5dca262b57d26c381382a3e057b22ede631fcce32523c004b8bf773f6f0
+    pause:   SHAY
