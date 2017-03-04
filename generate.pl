@@ -13,10 +13,10 @@ The Releases.yaml file must look roughly like:
 
 releases:
   - version: 5.20.0
-    sha1:    asdasdadas
+    sha256:  asdasdadas
     pause:   RJBS
 
-Where version is the version number of Perl, sha1 is the SHA1 of the
+Where version is the version number of Perl, sha256 is the SHA256 of the
 tar.bz2 file, and pause is the PAUSE account of the release manager.
 
 If needed or desired, extra_flags: can be added, which will be passed
@@ -49,7 +49,7 @@ if (! -d "downloads") {
 }
 
 for my $release (@{$yaml->{releases}}) {
-  do { die_with_sample unless $release->{$_}} for (qw(version pause sha1));
+  do { die_with_sample unless $release->{$_}} for (qw(version pause sha256));
 
   die "Bad version: $release->{version}" unless $release->{version} =~ /\A5\.\d+\.\d+\Z/;
 
@@ -57,7 +57,7 @@ for my $release (@{$yaml->{releases}}) {
   my $file = "perl-$release->{version}.tar.bz2";
   my $url = "http://www.cpan.org/src/5.0/$file";
   if (-f "downloads/$file" &&
-    `sha1sum downloads/$file` =~ /^\Q$release->{sha1}\E\s+\Qdownloads\/$file\E/) {
+    `sha256sum downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Qdownloads\/$file\E/) {
       print "Skipping download of $file, already current\n";
   } else {
     print "Downloading $url\n";
@@ -88,7 +88,7 @@ for my $release (@{$yaml->{releases}}) {
 
   for my $config (keys %builds) {
     my $output = $template;
-    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version pause extra_flags sha1));
+    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version pause extra_flags sha256));
     $output =~ s/\{\{args\}\}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
@@ -143,9 +143,9 @@ each with the following keys:
 
 The actual perl version, such as B<5.20.1>.
 
-=item sha1
+=item sha256
 
-The SHA-1 of the C<.tar.bz2> file for that release.
+The SHA-256 of the C<.tar.bz2> file for that release.
 
 =item pause
 
@@ -191,7 +191,7 @@ COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
-    && echo '{{sha1}} *perl-{{version}}.tar.bz2' | sha1sum -c - \
+    && echo '{{sha256}} *perl-{{version}}.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
     && cat *.patch | patch -p1 \

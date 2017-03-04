@@ -92,7 +92,7 @@ index f8ca492..204bba0 100644
 +    $self->{LIBS}->[0] .= ' -lgdbm_compat' if -e $_.'/libgdbm_compat.so';
  }
 diff --git a/hints/linux.sh b/hints/linux.sh
-index c88f157..fb5a46e 100644
+index c88f157..3f38ea0 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -13,11 +13,14 @@
@@ -176,10 +176,37 @@ index c88f157..fb5a46e 100644
          ppc*)
              # on ppc, it seems that gcc (at least gcc 3.3.2) isn't happy
              # with -O2 ; so downgrade to -O1.
-@@ -146,6 +150,77 @@ case "$optimize" in
+@@ -146,93 +150,78 @@ case "$optimize" in
      ;;
  esac
  
+-# Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
+-# for this test.
+-cat >try.c <<'EOM'
+-/* Test for whether ELF binaries are produced */
+-#include <fcntl.h>
+-#include <stdlib.h>
+-#include <unistd.h>
+-main() {
+-	char buffer[4];
+-	int i=open("a.out",O_RDONLY);
+-	if(i==-1)
+-		exit(1); /* fail */
+-	if(read(i,&buffer[0],4)<4)
+-		exit(1); /* fail */
+-	if(buffer[0] != 127 || buffer[1] != 'E' ||
+-           buffer[2] != 'L' || buffer[3] != 'F')
+-		exit(1); /* fail */
+-	exit(0); /* succeed (yes, it's ELF) */
+-}
+-EOM
+-if ${cc:-gcc} try.c >/dev/null 2>&1 && $run ./a.out; then
+-    cat <<'EOM' >&4
+-
+-You appear to have ELF support.  I'll try to use it for dynamic loading.
+-If dynamic loading doesn't work, read hints/linux.sh for further information.
+-EOM
+-
 +# Ubuntu 11.04 (and later, presumably) doesn't keep most libraries
 +# (such as -lm) in /lib or /usr/lib.  So we have to ask gcc to tell us
 +# where to look.  We don't want gcc's own libraries, however, so we
@@ -195,10 +222,16 @@ index c88f157..fb5a46e 100644
 +# plibpth to bypass this check.
 +if [ -x /usr/bin/gcc ] ; then
 +    gcc=/usr/bin/gcc
-+else
+ else
+-    cat <<'EOM' >&4
 +    gcc=gcc
 +fi
-+
+ 
+-You don't have an ELF gcc.  I will use dld if possible.  If you are
+-using a version of DLD earlier than 3.2.6, or don't have it at all, you
+-should probably upgrade. If you are forced to use 3.2.4, you should
+-uncomment a couple of lines in hints/linux.sh and restart Configure so
+-that shared libraries will be disallowed.
 +case "$plibpth" in
 +'') plibpth=`LANG=C LC_ALL=C $gcc $ccflags $ldflags -print-search-dirs | grep libraries |
 +	cut -f2- -d= | tr ':' $trnl | grep -v 'gcc' | sed -e 's:/$::'`
@@ -207,7 +240,54 @@ index c88f157..fb5a46e 100644
 +    plibpth="$*"
 +    ;;
 +esac
-+
+ 
+-EOM
+-    lddlflags="-r $lddlflags"
+-    # These empty values are so that Configure doesn't put in the
+-    # Linux ELF values.
+-    ccdlflags=' '
+-    cccdlflags=' '
+-    ccflags="-DOVR_DBL_DIG=14 $ccflags"
+-    so='sa'
+-    dlext='o'
+-    nm_so_opt=' '
+-    ## If you are using DLD 3.2.4 which does not support shared libs,
+-    ## uncomment the next two lines:
+-    #ldflags="-static"
+-    #so='none'
+-
+-	# In addition, on some systems there is a problem with perl and NDBM
+-	# which causes AnyDBM and NDBM_File to lock up. This is evidenced
+-	# in the tests as AnyDBM just freezing.  Apparently, this only
+-	# happens on a.out systems, so we disable NDBM for all a.out linux
+-	# systems.  If someone can suggest a more robust test
+-	#  that would be appreciated.
+-	#
+-	# More info:
+-	# Date: Wed, 7 Feb 1996 03:21:04 +0900
+-	# From: Jeffrey Friedl <jfriedl@nff.ncl.omron.co.jp>
+-	#
+-	# I tried compiling with DBM support and sure enough things locked up
+-	# just as advertised. Checking into it, I found that the lockup was
+-	# during the call to dbm_open. Not *in* dbm_open -- but between the call
+-	# to and the jump into.
+-	#
+-	# To make a long story short, making sure that the *.a and *.sa pairs of
+-	#   /usr/lib/lib{m,db,gdbm}.{a,sa}
+-	# were perfectly in sync took care of it.
+-	#
+-	# This will generate a harmless Whoa There! message
+-	case "$d_dbm_open" in
+-	'')	cat <<'EOM' >&4
+-
+-Disabling ndbm.  This will generate a Whoa There message in Configure.
+-Read hints/linux.sh for further information.
+-EOM
+-		# You can override this with Configure -Dd_dbm_open
+-		d_dbm_open=undef
+-		;;
+-	esac
+-fi
 +# libquadmath is sometimes installed as gcc internal library,
 +# so contrary to our usual policy of *not* looking at gcc internal
 +# directories we now *do* look at them, in case they contain
@@ -224,7 +304,8 @@ index c88f157..fb5a46e 100644
 +  done
 +  ;;
 +esac
-+
+ 
+-rm -f try.c a.out
 +case "$libc" in
 +'')
 +# If you have glibc, then report the version for ./myconfig bug reporting.
@@ -250,29 +331,13 @@ index c88f157..fb5a46e 100644
 +    done
 +    ;;
 +esac
-+
- # Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
- # for this test.
- cat >try.c <<'EOM'
-@@ -166,7 +241,7 @@ main() {
- 	exit(0); /* succeed (yes, it's ELF) */
- }
- EOM
--if ${cc:-gcc} try.c >/dev/null 2>&1 && $run ./a.out; then
-+if ${cc:-gcc} $ccflags $ldflags try.c >/dev/null 2>&1 && $run ./a.out; then
-     cat <<'EOM' >&4
- 
- You appear to have ELF support.  I'll try to use it for dynamic loading.
-@@ -232,7 +307,7 @@ fi
- 
- rm -f try.c a.out
  
 -if /bin/sh -c exit; then
 +if ${sh:-/bin/sh} -c exit; then
    echo ''
    echo 'You appear to have a working bash.  Good.'
  else
-@@ -299,7 +374,7 @@ fi
+@@ -299,7 +288,7 @@ fi
  #'osfmach3ppc') ccdlflags='-Wl,-E' ;;
  #esac
  
@@ -281,7 +346,7 @@ index c88f157..fb5a46e 100644
  sparc*)
  	case "$cccdlflags" in
  	*-fpic*) cccdlflags="`echo $cccdlflags|sed 's/-fpic/-fPIC/'`" ;;
-@@ -314,30 +389,62 @@ esac
+@@ -314,30 +303,62 @@ esac
  # version of -lgdbm which is a bad idea. So if we have 'nm'
  # make sure it can read the file
  # NI-S 2003/08/07
@@ -361,7 +426,7 @@ index c88f157..fb5a46e 100644
          if echo $libswanted | grep -v pthread >/dev/null
          then
              set `echo X "$libswanted "| sed -e 's/ c / pthread c /'`
-@@ -384,16 +491,6 @@ $define|true|[yY]*)
+@@ -384,16 +405,6 @@ $define|true|[yY]*)
      ;;
  esac
  
@@ -378,7 +443,7 @@ index c88f157..fb5a46e 100644
  # If using g++, the Configure scan for dlopen() and (especially)
  # dlerror() might fail, easier just to forcibly hint them in.
  case "$cc" in
-@@ -417,7 +514,7 @@ then
+@@ -417,7 +428,7 @@ then
         DBLIB="$DBDIR/libdb.so"
         if [ -f $DBLIB ]
         then
@@ -486,18 +551,6 @@ index 22a97eb..6eac035 100644
  	print "\nRunning Makefile.PL in $ext_dir\n";
  
  	# Presumably this can be simplified
-diff --git a/patchlevel.h b/patchlevel.h
-index 4442407..b82feab 100644
---- a/patchlevel.h
-+++ b/patchlevel.h
-@@ -131,6 +131,7 @@ static const char * const local_patches[] = {
- 	NULL
- 	PERL_GIT_UNPUSHED_COMMITS    	/* do not remove this line */
-         PERL_GIT_UNCOMMITTED_CHANGES	/* do not remove this line */
-+	,"Devel::PatchPerl 1.38"
- 	,NULL
- };
- 
 diff --git a/perl.c b/perl.c
 index 94f2b13..5f30040 100644
 --- a/perl.c
@@ -512,9 +565,7 @@ index 94f2b13..5f30040 100644
  
  #       ifdef OS2
 diff --git a/t/op/hash.t b/t/op/hash.t
-old mode 100755
-new mode 100644
-index 9bde518..45eb782
+index 9bde518..45eb782 100755
 --- a/t/op/hash.t
 +++ b/t/op/hash.t
 @@ -39,22 +39,36 @@ use constant THRESHOLD => 14;
