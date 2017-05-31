@@ -46,3 +46,7 @@ releases:
   - version: 5.24.1
     sha256:  482ac5dca262b57d26c381382a3e057b22ede631fcce32523c004b8bf773f6f0
     pause:   SHAY
+
+  - version: 5.26.0
+    sha256:  f21d66de84982175e95ad15fd8d0e22fed2cc2de7e4394f5d48dbe451be2f6f2
+    pause:   XSAWYERX
