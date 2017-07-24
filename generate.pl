@@ -36,9 +36,14 @@ my $template = do {
   <DATA>;
 };
 
+my $common = join " ", qw{
+-Duseshrplib
+-Dvendorprefix=/usr/local
+};
+
 my %builds = (
-  "64bit"          => "-Duse64bitall -Duseshrplib",
-  "64bit,threaded" => "-Dusethreads -Duse64bitall -Duseshrplib",
+  "64bit"          => "-Duse64bitall $common",
+  "64bit,threaded" => "-Dusethreads -Duse64bitall $common",
 );
 
 die_with_sample unless defined $yaml->{releases};
