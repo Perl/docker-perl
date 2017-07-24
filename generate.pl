@@ -157,7 +157,7 @@ The PAUSE (CPAN user) account that the release was uploaded to.
 
 =over 4
 
-=item extra_args
+=item extra_flags
 
 Additional text to pass to C<Configure>.  At the moment, this is necessary for
 5.18.x so that it can get the C<-fwrapv> flag.
