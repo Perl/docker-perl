@@ -14,7 +14,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/D/DO/DOM/perl-5.12.5.tar.bz2 -
     && tar --strip-components=1 -xjf perl-5.12.5.tar.bz2 -C /usr/src/perl \
     && rm perl-5.12.5.tar.bz2 \
     && cat *.patch | patch -p1 \
-    && ./Configure -Dusethreads -Duse64bitall -Duseshrplib -A ccflags=-fwrapv -des \
+    && ./Configure -Dusethreads -Duse64bitall -Duseshrplib -Dvendorprefix=/usr/local -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && make test_harness \
     && make install \

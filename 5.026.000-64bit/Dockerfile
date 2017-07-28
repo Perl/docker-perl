@@ -14,7 +14,7 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/X/XS/XSAWYERX/perl-5.26.0.tar.
     && tar --strip-components=1 -xjf perl-5.26.0.tar.bz2 -C /usr/src/perl \
     && rm perl-5.26.0.tar.bz2 \
     && cat *.patch | patch -p1 \
-    && ./Configure -Duse64bitall -Duseshrplib  -des \
+    && ./Configure -Duse64bitall -Duseshrplib -Dvendorprefix=/usr/local  -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
