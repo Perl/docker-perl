@@ -90,10 +90,11 @@ for my $release (@{$yaml->{releases}}) {
 
   $release->{pause} =~ s#(((.).).*)#$3/$2/$1#;
   $release->{extra_flags} = "" unless defined $release->{extra_flags};
+  $release->{_tag} = $release->{buildpack_deps} || "stretch";
 
   for my $config (keys %builds) {
     my $output = $template;
-    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version pause extra_flags sha256));
+    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version pause extra_flags sha256 _tag));
     $output =~ s/\{\{args\}\}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
@@ -162,6 +163,13 @@ The PAUSE (CPAN user) account that the release was uploaded to.
 
 =over 4
 
+=item buildpack_deps
+
+The Docker L<buildpack-deps|https://hub.docker.com/_/buildpack-deps>
+image tag which this Perl would build on.
+
+Defaults: C<stretch>
+
 =item extra_flags
 
 Additional text to pass to C<Configure>.  At the moment, this is necessary for
@@ -184,7 +192,7 @@ Default: C<yes>
 =cut
 
 __DATA__
-FROM buildpack-deps
+FROM buildpack_deps:{{_tag}}
 MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
 RUN mkdir /usr/src/perl
