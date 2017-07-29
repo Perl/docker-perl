@@ -1,7 +1,6 @@
 FROM buildpack-deps:stretch
 MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
-RUN mkdir /usr/src/perl
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
