@@ -1,4 +1,4 @@
-FROM buildpack-deps
+FROM buildpack-deps:jessie
 MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
 RUN mkdir /usr/src/perl
