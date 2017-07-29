@@ -195,7 +195,6 @@ __DATA__
 FROM buildpack-deps:{{_tag}}
 MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
-RUN mkdir /usr/src/perl
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
