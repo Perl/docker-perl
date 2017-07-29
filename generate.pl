@@ -187,10 +187,6 @@ __DATA__
 FROM buildpack-deps
 MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
-RUN apt-get update \
-    && apt-get install -y curl procps \
-    && rm -fr /var/lib/apt/lists/*
-
 RUN mkdir /usr/src/perl
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
