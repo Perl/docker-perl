@@ -192,7 +192,7 @@ Default: C<yes>
 =cut
 
 __DATA__
-FROM buildpack_deps:{{_tag}}
+FROM buildpack-deps:{{_tag}}
 MAINTAINER Peter Martini <PeterCMartini@GMail.com>
 
 RUN mkdir /usr/src/perl
