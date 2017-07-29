@@ -4,36 +4,42 @@ releases:
     pause:   NWCLARK
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
+    buildpack_deps: jessie
 
   - version: 5.10.1
     sha256:  9385f2c8c2ca8b1dc4a7c31903f1f8dc8f2ba867dc2a9e5c93012ed6b564e826
     pause:   DAPM
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
+    buildpack_deps: jessie
 
   - version: 5.12.5
     sha256:  10749417fd3010aae320a34181ad4cd6a4855c1fc63403b87fa4d630b18e966c
     pause:   DOM
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
+    buildpack_deps: jessie
 
   - version: 5.14.4
     sha256:  eece8c2b0d491bf6f746bd1f4f1bb7ce26f6b98e91c54690c617d7af38964745
     pause:   DAPM
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
+    buildpack_deps: jessie
 
   - version: 5.16.3
     sha256:  bb7bc735e6813b177dcfccd480defcde7eddefa173b5967eac11babd1bfa98e8
     pause:   RJBS
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
+    buildpack_deps: jessie
 
   - version: 5.18.4
     sha256:  1fb4d27b75cd244e849f253320260efe1750641aaff4a18ce0d67556ff1b96a5
     pause:   RJBS
     extra_flags: "-A ccflags=-fwrapv"
     test_parallel: no
+    buildpack_deps: jessie
 
   - version: 5.20.3
     sha256:  1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b
