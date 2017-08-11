@@ -26,7 +26,7 @@ EOF
 }
 
 my $yaml = do {
-  open my $fh, "Releases.yaml" or die "Couldn't open releases";
+  open my $fh, "<", "Releases.yaml" or die "Couldn't open releases";
   local $/;
   Load <$fh>;
 };
@@ -105,7 +105,7 @@ for my $release (@{$yaml->{releases}}) {
 
     # Set up the generated DevelPatchPerl.patch
     {
-      open(my $fh, ">$dir/DevelPatchPerl.patch");
+      open my $fh, ">", "$dir/DevelPatchPerl.patch";
       print $fh $patch;
     }
 
@@ -117,7 +117,7 @@ for my $release (@{$yaml->{releases}}) {
         die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
     }
 
-    open my $dockerfile, ">$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
+    open my $dockerfile, ">", "$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
     close $dockerfile;
   }
