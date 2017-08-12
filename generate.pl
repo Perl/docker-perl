@@ -193,7 +193,7 @@ Default: C<yes>
 
 __DATA__
 FROM buildpack-deps:{{_tag}}
-MAINTAINER Peter Martini <PeterCMartini@GMail.com>
+LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
