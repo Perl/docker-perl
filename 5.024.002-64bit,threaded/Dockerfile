@@ -4,7 +4,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.24.2.tar.bz2 -o perl-5.24.2.tar.bz2 \
+RUN curl -SL https://www.cpan.org/src/5.0/perl-5.24.2.tar.bz2 -o perl-5.24.2.tar.bz2 \
     && echo 'e28c8fa588c4227eb25350036b45d7b1b46d61bb3a2194ee09dc79be6ed0fd0f *perl-5.24.2.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-5.24.2.tar.bz2 -C /usr/src/perl \
     && rm perl-5.24.2.tar.bz2 \
