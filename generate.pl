@@ -14,10 +14,9 @@ The Releases.yaml file must look roughly like:
 releases:
   - version: 5.20.0
     sha256:  asdasdadas
-    pause:   RJBS
 
-Where version is the version number of Perl, sha256 is the SHA256 of the
-tar.bz2 file, and pause is the PAUSE account of the release manager.
+Where version is the version number of Perl and sha256 is the SHA256 of
+the tar.bz2 file.
 
 If needed or desired, extra_flags: can be added, which will be passed
 verbatim to Configure.
@@ -54,13 +53,13 @@ if (! -d "downloads") {
 }
 
 for my $release (@{$yaml->{releases}}) {
-  do { die_with_sample unless $release->{$_}} for (qw(version pause sha256));
+  do { die_with_sample unless $release->{$_}} for (qw(version sha256));
 
   die "Bad version: $release->{version}" unless $release->{version} =~ /\A5\.\d+\.\d+\Z/;
 
   my $patch;
   my $file = "perl-$release->{version}.tar.bz2";
-  my $url = "http://www.cpan.org/src/5.0/$file";
+  my $url = "https://www.cpan.org/src/5.0/$file";
   if (-f "downloads/$file" &&
     `sha256sum downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Qdownloads\/$file\E/) {
       print "Skipping download of $file, already current\n";
@@ -88,13 +87,13 @@ for my $release (@{$yaml->{releases}}) {
     die "Couldn't create a Devel::PatchPerl patch for $release->{version}" if $? != 0;
   }
 
-  $release->{pause} =~ s#(((.).).*)#$3/$2/$1#;
+  $release->{url} = $url;
   $release->{extra_flags} = "" unless defined $release->{extra_flags};
   $release->{_tag} = $release->{buildpack_deps} || "stretch";
 
   for my $config (keys %builds) {
     my $output = $template;
-    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version pause extra_flags sha256 _tag));
+    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version extra_flags sha256 url _tag));
     $output =~ s/\{\{args\}\}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
@@ -153,12 +152,6 @@ The actual perl version, such as B<5.20.1>.
 
 The SHA-256 of the C<.tar.bz2> file for that release.
 
-=item pause
-
-The PAUSE (CPAN user) account that the release was uploaded to.
-
-=back
-
 =item OPTIONAL
 
 =over 4
@@ -198,7 +191,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL https://cpan.metacpan.org/authors/id/{{pause}}/perl-{{version}}.tar.bz2 -o perl-{{version}}.tar.bz2 \
+RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
     && echo '{{sha256}} *perl-{{version}}.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
