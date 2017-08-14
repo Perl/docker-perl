@@ -1,4 +1,4 @@
-FROM buildpack-deps:stretch
+FROM arm64v8/buildpack-deps:stretch
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
