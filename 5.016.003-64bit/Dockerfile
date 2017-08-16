@@ -1,7 +1,7 @@
 FROM buildpack-deps:jessie
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
-COPY *.patch /usr/src/perl/
+COPY cpanm *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.16.3.tar.bz2 -o perl-5.16.3.tar.bz2 \
@@ -13,11 +13,9 @@ RUN curl -SL https://cpan.metacpan.org/authors/id/R/RJ/RJBS/perl-5.16.3.tar.bz2 
     && make -j$(nproc) \
     && make test_harness \
     && make install \
-    && cd /usr/src \
-    && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
-    && chmod +x cpanm \
-    && ./cpanm App::cpanminus \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
+    && chmod +x ./cpanm \
+    && mv ./cpanm /usr/local/bin \
+    && rm -fr /usr/src/perl /tmp/*
 
 WORKDIR /root
 
