@@ -45,6 +45,7 @@ my %builds = (
   "64bit,threaded" => "-Dusethreads -Duse64bitall $common",
 );
 
+# sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
 my %cpanm = (
     name => "App-cpanminus-1.7043",
     url => "http://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7043.tar.gz",
