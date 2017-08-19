@@ -119,6 +119,8 @@ for my $release (@{$yaml->{releases}}) {
     open my $dockerfile, ">", "$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
     print $dockerfile $output;
     close $dockerfile;
+
+    qx{cp -a cpanm $dir};
   }
 }
 
@@ -188,7 +190,7 @@ __DATA__
 FROM buildpack-deps:{{_tag}}
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
-COPY *.patch /usr/src/perl/
+COPY cpanm *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
@@ -200,11 +202,9 @@ RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
     && make -j$(nproc) \
     && {{test}} \
     && make install \
-    && cd /usr/src \
-    && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
-    && chmod +x cpanm \
-    && ./cpanm App::cpanminus \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
+    && chmod +x ./cpanm \
+    && mv ./cpanm /usr/local/bin \
+    && rm -fr /usr/src/perl /tmp/*
 
 WORKDIR /root
 
