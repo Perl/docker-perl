@@ -45,6 +45,12 @@ my %builds = (
   "64bit,threaded" => "-Dusethreads -Duse64bitall $common",
 );
 
+my %cpanm = (
+    name => "App-cpanminus-1.7043",
+    url => "http://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7043.tar.gz",
+    sha256 => "68a06f7da80882a95bc02c92c7ee305846fb6ab648cf83678ea945e44ad65c65",
+);
+
 die_with_sample unless defined $yaml->{releases};
 die_with_sample unless ref $yaml->{releases} eq "ARRAY";
 
@@ -90,10 +96,12 @@ for my $release (@{$yaml->{releases}}) {
   $release->{url} = $url;
   $release->{extra_flags} = "" unless defined $release->{extra_flags};
   $release->{_tag} = $release->{buildpack_deps} || "stretch";
+  $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
 
   for my $config (keys %builds) {
     my $output = $template;
-    $output =~ s/\{\{$_\}\}/$release->{$_}/mg for (qw(version extra_flags sha256 url _tag));
+    $output =~ s/\{\{$_\}\}/$release->{$_}/mg
+        for (qw(version pause extra_flags sha256 url _tag cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
     $output =~ s/\{\{args\}\}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
@@ -201,10 +209,10 @@ RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
     && {{test}} \
     && make install \
     && cd /usr/src \
-    && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
-    && chmod +x cpanm \
-    && ./cpanm App::cpanminus \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
+    && curl -LO {{cpanm_dist_url}} \
+    && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum -c - \
+    && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
+    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
 
 WORKDIR /root
 
