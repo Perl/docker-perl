@@ -9,7 +9,10 @@ RUN curl -SL https://www.cpan.org/src/5.0/perl-5.26.0.tar.bz2 -o perl-5.26.0.tar
     && tar --strip-components=1 -xjf perl-5.26.0.tar.bz2 -C /usr/src/perl \
     && rm perl-5.26.0.tar.bz2 \
     && cat *.patch | patch -p1 \
-    && ./Configure -Duse64bitall -Duseshrplib -Dvendorprefix=/usr/local  -des \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
+    && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local  -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
