@@ -41,8 +41,8 @@ my $common = join " ", qw{
 };
 
 my %builds = (
-  "64bit"          => "-Duse64bitall $common",
-  "64bit,threaded" => "-Dusethreads -Duse64bitall $common",
+  "64bit"          => "$common",
+  "64bit,threaded" => "-Dusethreads $common",
 );
 
 # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
@@ -205,7 +205,10 @@ RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
     && rm perl-{{version}}.tar.bz2 \
     && cat *.patch | patch -p1 \
-    && ./Configure {{args}} {{extra_flags}} -des \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
+    && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
     && {{test}} \
     && make install \

@@ -9,7 +9,10 @@ RUN curl -SL https://www.cpan.org/src/5.0/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar
     && tar --strip-components=1 -xjf perl-5.18.4.tar.bz2 -C /usr/src/perl \
     && rm perl-5.18.4.tar.bz2 \
     && cat *.patch | patch -p1 \
-    && ./Configure -Dusethreads -Duse64bitall -Duseshrplib -Dvendorprefix=/usr/local -A ccflags=-fwrapv -des \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
+    && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local -A ccflags=-fwrapv -des \
     && make -j$(nproc) \
     && make test_harness \
     && make install \
