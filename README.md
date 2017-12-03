@@ -25,3 +25,19 @@ a current base OS.  In those cases, perl -V will show the locally applied patche
 These changes should be limited to Configure rather than to code itself, and
 will be a cherry pick or back port of a patch from the mainline perl branch
 whenever possible.
+
+## Generate Dockerfiles
+
+You can (re)generate Dockerfiles locally by
+
+	$ cpanm --installdeps .
+
+to install a single dependent library, and then
+
+	$ ./generate.pl
+	
+After that, you can check any file like this
+
+	$ sudo docker build -t test-perl-5.26 5.026.000-64bit/
+	
+	
