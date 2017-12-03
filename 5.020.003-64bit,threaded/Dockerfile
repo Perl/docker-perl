@@ -3,7 +3,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
-
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y update && apt-get -y upgrade
 RUN curl -SL https://www.cpan.org/src/5.0/perl-5.20.3.tar.bz2 -o perl-5.20.3.tar.bz2 \
     && echo '1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b *perl-5.20.3.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-5.20.3.tar.bz2 -C /usr/src/perl \
