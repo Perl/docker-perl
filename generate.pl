@@ -199,7 +199,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
-
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y update && apt-get -y upgrade
 RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
     && echo '{{sha256}} *perl-{{version}}.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \

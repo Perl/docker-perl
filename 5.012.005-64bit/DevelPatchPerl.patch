@@ -541,7 +541,9 @@ index de26d84..52b0492 100644
  
  	# Presumably this can be simplified
 diff --git a/t/op/hash.t b/t/op/hash.t
-index 9bde518..45eb782 100755
+old mode 100755
+new mode 100644
+index 9bde518..45eb782
 --- a/t/op/hash.t
 +++ b/t/op/hash.t
 @@ -39,22 +39,36 @@ use constant THRESHOLD => 14;

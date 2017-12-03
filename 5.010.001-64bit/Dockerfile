@@ -3,7 +3,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
-
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y update && apt-get -y upgrade
 RUN curl -SL https://www.cpan.org/src/5.0/perl-5.10.1.tar.bz2 -o perl-5.10.1.tar.bz2 \
     && echo '9385f2c8c2ca8b1dc4a7c31903f1f8dc8f2ba867dc2a9e5c93012ed6b564e826 *perl-5.10.1.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xjf perl-5.10.1.tar.bz2 -C /usr/src/perl \
