@@ -1,27 +1,39 @@
 docker-perl
 ===========
 
-Dockerfiles for Perl5
+This project is the source for the Docker perl repo; for more details,
+take a look at https://registry.hub.docker.com/_/perl/.
 
-This project is the source for the Docker perl repo; for more details, take
-a look at https://registry.hub.docker.com/_/perl/.
+The structure of this repo is to use the full version ID of each Perl
+version, plus a comma separate list of extensions.  Every directory is
+expected to have at least the bit specification (32bit or 64bit), and at
+the moment the only other extension is threaded.
 
-The structure of this repo is to use the full version ID of each Perl version,
-plus a comma separate list of extensions.  Every directory is expected to have
-at least the bit specification (32bit or 64bit), and at the moment the only
-other extension is threaded.
+Despite having a directory layout expressed in terms of bit
+specifications as above, the Docker Perl image now builds and runs in
+architectures other than `amd64`, such as [`i386`][1] and
+[`arm64v8`][2]; see [docker-library/official-images][3] for the details.
 
-There are currently no 32bit extensions as Docker does not (yet?) support 32-bit
-builds.
 
-The 64bit builds specify use64bitall despite this being largely redundant
-(Configure would properly detect this) to make the desired bit size explicit.
+[0]: https://hub.docker.com/r/i386/perl/
+[1]: https://hub.docker.com/r/arm64v8/perl
+[2]: https://github.com/docker-library/official-images#architectures-other-than-amd64
 
-The individual Dockerfiles are generated via 'generate.pl', which uses
-Releases.yaml to populate the individual files.
+## Getting Started
 
-For older versions of Perl, some patches may be necessary to build properly on
-a current base OS.  In those cases, perl -V will show the locally applied patches.
-These changes should be limited to Configure rather than to code itself, and
-will be a cherry pick or back port of a patch from the mainline perl branch
-whenever possible.
+The individual Dockerfiles are generated via `generate.pl`, which uses
+Releases.yaml to populate the individual files.  This needs the
+`Devel::PatchPerl` and `YAML::XS` modules, which you can install by
+doing `cpanm --installdeps .` in this repository's root directory.
+    
+To regenerate the `Dockerfile`s, just run `./generate.pl`.  Do note that
+this might take time as it will download the Perl source tarballs for
+each version to re-patch with updates from `Devel::PatchPerl` as needed.
+Also, it is advised to update `Devel::PatchPerl` as soon as a new
+version comes out.
+
+For older versions of Perl, some patches may be necessary to build
+properly on a current base OS.  In those cases, perl -V will show the
+locally applied patches.  These changes should be limited to Configure
+rather than to code itself, and will be a cherry pick or back port of a
+patch from the mainline perl branch whenever possible.
