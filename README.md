@@ -15,9 +15,9 @@ architectures other than `amd64`, such as [`i386`][1] and
 [`arm64v8`][2]; see [docker-library/official-images][3] for the details.
 
 
-[0]: https://hub.docker.com/r/i386/perl/
-[1]: https://hub.docker.com/r/arm64v8/perl
-[2]: https://github.com/docker-library/official-images#architectures-other-than-amd64
+[1]: https://hub.docker.com/r/i386/perl/
+[2]: https://hub.docker.com/r/arm64v8/perl
+[3]: https://github.com/docker-library/official-images#architectures-other-than-amd64
 
 ## Getting Started
 
