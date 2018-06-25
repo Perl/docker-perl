@@ -6,7 +6,7 @@ WORKDIR /usr/src/perl
 
 RUN curl -SL https://www.cpan.org/src/5.0/perl-5.26.2.tar.bz2 -o perl-5.26.2.tar.bz2 \
     && echo '3f6a6b5bbd43016e5211e24b6631ea84216dd300216a2293b41c9195032f3e81 *perl-5.26.2.tar.bz2' | sha256sum -c - \
-    && tar --strip-components=1 -xjf perl-5.26.2.tar.bz2 -C /usr/src/perl \
+    && tar --strip-components=1 -xaf perl-5.26.2.tar.bz2 -C /usr/src/perl \
     && rm perl-5.26.2.tar.bz2 \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
