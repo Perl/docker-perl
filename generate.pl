@@ -65,7 +65,8 @@ for my $release (@{$yaml->{releases}}) {
   die "Bad version: $release->{version}" unless $release->{version} =~ /\A5\.\d+\.\d+\Z/;
 
   my $patch;
-  my $file = "perl-$release->{version}.tar.bz2";
+  $release->{type} ||= 'bz2';
+  my $file = "perl-$release->{version}.tar.$release->{type}";
   my $url = "https://www.cpan.org/src/5.0/$file";
   if (-f "downloads/$file" &&
     `sha256sum downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Qdownloads\/$file\E/) {
@@ -79,7 +80,7 @@ for my $release (@{$yaml->{releases}}) {
     qx{rm -fR $dir};
     mkdir $dir or die "Couldn't create $dir";
     qx{
-      tar -C "downloads" -jxf $dir.tar.bz2 &&\
+      tar -C "downloads" -axf $dir.tar.$release->{type} &&\
       cd $dir &&\
       find . -exec chmod u+w {} + &&\
       git init &&\
@@ -102,7 +103,7 @@ for my $release (@{$yaml->{releases}}) {
   for my $config (keys %builds) {
     my $output = $template;
     $output =~ s/\{\{$_\}\}/$release->{$_}/mg
-        for (qw(version pause extra_flags sha256 url _tag cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
+        for (qw(version pause extra_flags sha256 type url _tag cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
     $output =~ s/\{\{args\}\}/$builds{$config}/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s",
@@ -200,10 +201,10 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL {{url}} -o perl-{{version}}.tar.bz2 \
-    && echo '{{sha256}} *perl-{{version}}.tar.bz2' | sha256sum -c - \
-    && tar --strip-components=1 -xjf perl-{{version}}.tar.bz2 -C /usr/src/perl \
-    && rm perl-{{version}}.tar.bz2 \
+RUN curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
+    && echo '{{sha256}} *perl-{{version}}.tar.{{type}}' | sha256sum -c - \
+    && tar --strip-components=1 -xaf perl-{{version}}.tar.{{type}} -C /usr/src/perl \
+    && rm perl-{{version}}.tar.{{type}} \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
