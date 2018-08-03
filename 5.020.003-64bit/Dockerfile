@@ -30,5 +30,6 @@ CMD ["perl5.20.3","-de0"]
 FROM debian:stretch-slim as runtime
 WORKDIR /root
 COPY --from=build /usr/local/lib/perl5 /usr/local/lib/perl5
+COPY --from=build /usr/local/bin /usr/local/bin/
 
 CMD ["perl5.26.2","-de0"]
