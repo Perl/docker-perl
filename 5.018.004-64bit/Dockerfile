@@ -1,10 +1,11 @@
-FROM buildpack-deps:jessie
+FROM buildpack-deps:jessie as build
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL https://www.cpan.org/src/5.0/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar.bz2 \
+RUN apt-get update && apt-get install --no-install-recommends less \
+    && curl -SL https://www.cpan.org/src/5.0/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar.bz2 \
     && echo '1fb4d27b75cd244e849f253320260efe1750641aaff4a18ce0d67556ff1b96a5 *perl-5.18.4.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.18.4.tar.bz2 -C /usr/src/perl \
     && rm perl-5.18.4.tar.bz2 \
@@ -25,3 +26,9 @@ RUN curl -SL https://www.cpan.org/src/5.0/perl-5.18.4.tar.bz2 -o perl-5.18.4.tar
 WORKDIR /root
 
 CMD ["perl5.18.4","-de0"]
+
+FROM debian:jessie-slim as runtime
+WORKDIR /root
+COPY --from=build /usr/local/lib/perl5 /usr/local/lib/perl5
+
+CMD ["perl5.26.2","-de0"]

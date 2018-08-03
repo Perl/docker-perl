@@ -1,10 +1,11 @@
-FROM buildpack-deps:stretch
+FROM buildpack-deps:stretch as build
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL https://www.cpan.org/src/5.0/perl-5.26.2.tar.bz2 -o perl-5.26.2.tar.bz2 \
+RUN apt-get update && apt-get install --no-install-recommends less \
+    && curl -SL https://www.cpan.org/src/5.0/perl-5.26.2.tar.bz2 -o perl-5.26.2.tar.bz2 \
     && echo '3f6a6b5bbd43016e5211e24b6631ea84216dd300216a2293b41c9195032f3e81 *perl-5.26.2.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.26.2.tar.bz2 -C /usr/src/perl \
     && rm perl-5.26.2.tar.bz2 \
@@ -23,5 +24,11 @@ RUN curl -SL https://www.cpan.org/src/5.0/perl-5.26.2.tar.bz2 -o perl-5.26.2.tar
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7044* /tmp/*
 
 WORKDIR /root
+
+CMD ["perl5.26.2","-de0"]
+
+FROM debian:stretch-slim as runtime
+WORKDIR /root
+COPY --from=build /usr/local/lib/perl5 /usr/local/lib/perl5
 
 CMD ["perl5.26.2","-de0"]

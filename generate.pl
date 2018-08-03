@@ -195,13 +195,14 @@ Default: C<yes>
 =cut
 
 __DATA__
-FROM buildpack-deps:{{_tag}}
+FROM buildpack-deps:{{_tag}} as build
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
+RUN apt-get update && apt-get install --no-install-recommends less \
+    && curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
     && echo '{{sha256}} *perl-{{version}}.tar.{{type}}' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-{{version}}.tar.{{type}} -C /usr/src/perl \
     && rm perl-{{version}}.tar.{{type}} \
@@ -222,3 +223,9 @@ RUN curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
 WORKDIR /root
 
 CMD ["perl{{version}}","-de0"]
+
+FROM debian:{{_tag}}-slim as runtime
+WORKDIR /root
+COPY --from=build /usr/local/lib/perl5 /usr/local/lib/perl5
+
+CMD ["perl5.26.2","-de0"]
