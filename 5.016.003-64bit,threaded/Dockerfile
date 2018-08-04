@@ -4,8 +4,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN apt-get update && apt-get install --no-install-recommends less \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.16.3.tar.bz2 -o perl-5.16.3.tar.bz2 \
+RUN curl -SL https://www.cpan.org/src/5.0/perl-5.16.3.tar.bz2 -o perl-5.16.3.tar.bz2 \
     && echo 'bb7bc735e6813b177dcfccd480defcde7eddefa173b5967eac11babd1bfa98e8 *perl-5.16.3.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.16.3.tar.bz2 -C /usr/src/perl \
     && rm perl-5.16.3.tar.bz2 \

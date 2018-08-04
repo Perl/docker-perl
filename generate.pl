@@ -201,8 +201,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN apt-get update && apt-get install --no-install-recommends less \
-    && curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
+RUN curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
     && echo '{{sha256}} *perl-{{version}}.tar.{{type}}' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-{{version}}.tar.{{type}} -C /usr/src/perl \
     && rm perl-{{version}}.tar.{{type}} \

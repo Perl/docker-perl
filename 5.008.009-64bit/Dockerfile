@@ -4,8 +4,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-RUN apt-get update && apt-get install --no-install-recommends less \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2 -o perl-5.8.9.tar.bz2 \
+RUN curl -SL https://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2 -o perl-5.8.9.tar.bz2 \
     && echo '1097fbcd48ceccb2bc735d119c9db399a02a8ab9f7dc53e29e47e6a8d0d72e79 *perl-5.8.9.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.8.9.tar.bz2 -C /usr/src/perl \
     && rm perl-5.8.9.tar.bz2 \
