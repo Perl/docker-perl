@@ -195,7 +195,7 @@ Default: C<yes>
 =cut
 
 __DATA__
-FROM buildpack-deps:{{_tag}}
+FROM buildpack-deps:{{_tag}} as build
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
@@ -222,3 +222,10 @@ RUN curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
 WORKDIR /root
 
 CMD ["perl{{version}}","-de0"]
+
+FROM debian:{{_tag}}-slim as runtime
+WORKDIR /root
+COPY --from=build /usr/local/lib/perl5 /usr/local/lib/perl5
+COPY --from=build /usr/local/bin /usr/local/bin/
+
+CMD ["perl5.26.2","-de0"]
