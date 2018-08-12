@@ -9,10 +9,9 @@ version, plus a comma separate list of extensions.  Every directory is
 expected to have at least the bit specification (32bit or 64bit), and at
 the moment the only other extension is threaded.
 
-Despite having a directory layout expressed in terms of bit
-specifications as above, the Docker Perl image now builds and runs in
-architectures other than `amd64`, such as [`i386`][1] and
-[`arm64v8`][2]; see [docker-library/official-images][3] for the details.
+The Docker Perl image now builds and runs in architectures other than
+`amd64`, such as [`i386`][1] and [`arm64v8`][2]; see
+[docker-library/official-images][3] for the details.
 
 
 [1]: https://hub.docker.com/r/i386/perl/
