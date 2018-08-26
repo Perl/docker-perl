@@ -85,7 +85,7 @@ my %builds;
 # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
 my %cpanm = (
   name   => "App-cpanminus-1.7044",
-  url    => "http://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7044.tar.gz",
+  url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7044.tar.gz",
   sha256 => "9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3",
 );
 
