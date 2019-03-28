@@ -1,0 +1,32 @@
+FROM buildpack-deps:stretch
+LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
+
+COPY *.patch /usr/src/perl/
+WORKDIR /usr/src/perl
+
+RUN true \
+    && curl -SL https://www.cpan.org/src/5.0/perl-5.28.1.tar.xz -o perl-5.28.1.tar.xz \
+    && echo 'fea7162d4cca940a387f0587b93f6737d884bf74d8a9d7cfd978bc12cd0b202d *perl-5.28.1.tar.xz' | sha256sum -c - \
+    && tar --strip-components=1 -xaf perl-5.28.1.tar.xz -C /usr/src/perl \
+    && rm perl-5.28.1.tar.xz \
+    && cat *.patch | patch -p1 \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
+    && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local  -Doptimise=-g -DEBUGGING=both -des \
+    && make -j$(nproc) \
+    && TEST_JOBS=$(nproc) make test_harness \
+    && make install \
+    && cd /usr/src \
+    && curl -LO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7044.tar.gz \
+    && echo '9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3 *App-cpanminus-1.7044.tar.gz' | sha256sum -c - \
+    && tar -xzf App-cpanminus-1.7044.tar.gz && cd App-cpanminus-1.7044 && perl bin/cpanm . && cd /root \
+    && true \
+    && rm -fr ./cpanm /root/.cpanm /tmp/* /usr/src/App-cpanminus-1.7044* \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y gdb \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/*
+
+WORKDIR /root
+
+CMD ["perl5.28.1","-de0"]
