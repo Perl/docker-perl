@@ -133,7 +133,7 @@ for my $release (@{$config->{releases}}) {
     die "Couldn't create a temp git repo for $release->{version}" if $? != 0;
     Devel::PatchPerl->patch_source($release->{version}, $dir);
     $patch = qx{
-      cd $dir && git diff
+      cd $dir && git -c 'diff.mnemonicprefix=false' diff
     };
     die "Couldn't create a Devel::PatchPerl patch for $release->{version}" if $? != 0;
   }
