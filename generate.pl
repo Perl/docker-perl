@@ -69,6 +69,19 @@ savedPackages="make netbase" \
 EOF
 chomp $docker_slim_run_purge;
 
+my $docker_rm_sources = <<'OEF';
+rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
+OEF
+chomp $docker_rm_sources;
+
+my $docker_rm_sources_install = <<'OEF';
+rm -fr ./cpanm /root/.cpanm /tmp/* /usr/src/{{cpanm_dist_name}}* \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y gdb \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/*
+OEF
+chomp $docker_rm_sources_install;
+
 my $config = do {
   open my $fh, '<', 'config.yml' or die "Couldn't open config";
   local $/;
@@ -144,10 +157,17 @@ for my $release (@{$config->{releases}}) {
 
     $release->{extra_flags}    ||= '';
     $release->{debian_release} ||= 'stretch';
+    my $debug_flags = '';
 
-    if ($build =~ /main/) {
+    if ($build =~ /(main|debug)/) {
       $release->{image} = 'buildpack-deps';
       $release->{tag}   = $release->{debian_release};
+      if ($build =~ /debug/) {
+          # The beginning space here is important, it is here to reduce the
+          # size of the diff size for the non-debug Dockerfiles.
+          # Older versions may require -Doptimise=-g
+          $debug_flags = " -Doptimise=-g -DEBUGGING=both";
+      }
     }
     else {
       $release->{image} = 'debian';
@@ -155,9 +175,6 @@ for my $release (@{$config->{releases}}) {
     }
 
     my $output = $template;
-    $output =~ s/\{\{$_\}\}/$release->{$_}/mg
-      for (qw(version pause extra_flags sha256 type url image tag cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
-    $output =~ s/\{\{args\}\}/$builds{$build}/mg;
 
     if ($build =~ /slim/) {
       $output =~ s/\{\{docker_slim_run_install\}\}/$docker_slim_run_install/mg;
@@ -167,6 +184,21 @@ for my $release (@{$config->{releases}}) {
       $output =~ s/\{\{docker_slim_run_install\}\}/true/mg;
       $output =~ s/\{\{docker_slim_run_purge\}\}/true/mg;
     }
+
+    if ($build eq 'debug') {
+      $output =~ s/\{\{docker_rm_sources\}\}/$docker_rm_sources_install/mg;
+    }
+    else {
+      $output =~ s/\{\{docker_rm_sources\}\}/$docker_rm_sources/mg;
+    }
+
+    $output =~ s/\{\{$_\}\}/$release->{$_}/mg
+      for (qw(version pause extra_flags sha256 type url image tag cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
+    $output =~ s/\{\{args\}\}/$builds{$build}/mg;
+
+    # The beginning space here is important, it is here to reduce the
+    # size of the diff size for the non-debug Dockerfiles.
+    $output =~ s/ \{\{debug_flags\}\}/$debug_flags/mg;
 
     my $dir = sprintf "%i.%03i.%03i-%s", ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/), $build;
 
@@ -277,7 +309,7 @@ RUN {{docker_slim_run_install}} \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} {{debug_flags}} -des \
     && make -j$(nproc) \
     && {{test}} \
     && make install \
@@ -286,7 +318,7 @@ RUN {{docker_slim_run_install}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum -c - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
     && {{docker_slim_run_purge}} \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
+    && {{docker_rm_sources}}
 
 WORKDIR /root
 
