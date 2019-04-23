@@ -40,7 +40,7 @@ index b707911..2588f0b 100644
  		or die "Cannot exec $cpp";
  	}
 diff --git a/hints/linux.sh b/hints/linux.sh
-index a148248..3f38ea0 100644
+index a148248..a985a8e 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -39,7 +39,7 @@ i_libutil='undef'
@@ -111,7 +111,7 @@ index a148248..3f38ea0 100644
  	cut -f2- -d= | tr ':' $trnl | grep -v 'gcc' | sed -e 's:/$::'`
      set X $plibpth # Collapse all entries on one line
      shift
-@@ -182,93 +178,50 @@ case "$plibpth" in
+@@ -182,93 +178,60 @@ case "$plibpth" in
      ;;
  esac
  
@@ -150,7 +150,16 @@ index a148248..3f38ea0 100644
 -should probably upgrade. If you are forced to use 3.2.4, you should
 -uncomment a couple of lines in hints/linux.sh and restart Configure so
 -that shared libraries will be disallowed.
--
++# For the musl libc, perl should #define _GNU_SOURCE.  Otherwise, some
++# available functions, like memem, won't be used.  See the discussion in
++# [perl #133760].  musl doesn't offer an easy way to identify it, but,
++# at least on alpine linux, the ldd --version output contains the
++# string 'musl.'
++case `ldd --version 2>&1` in
++    musl*)  ccflags="$ccflags -D_GNU_SOURCE" ;;
++        *) ;;
++esac
+ 
 -EOM
 -    lddlflags="-r $lddlflags"
 -    # These empty values are so that Configure doesn't put in the
@@ -247,7 +256,7 @@ index a148248..3f38ea0 100644
    echo ''
    echo 'You appear to have a working bash.  Good.'
  else
-@@ -335,7 +288,7 @@ fi
+@@ -335,7 +298,7 @@ fi
  #'osfmach3ppc') ccdlflags='-Wl,-E' ;;
  #esac
  
@@ -256,7 +265,7 @@ index a148248..3f38ea0 100644
  sparc*)
  	case "$cccdlflags" in
  	*-fpic*) cccdlflags="`echo $cccdlflags|sed 's/-fpic/-fPIC/'`" ;;
-@@ -350,17 +303,55 @@ esac
+@@ -350,17 +313,55 @@ esac
  # version of -lgdbm which is a bad idea. So if we have 'nm'
  # make sure it can read the file
  # NI-S 2003/08/07
@@ -322,7 +331,7 @@ index a148248..3f38ea0 100644
  
  # This script UU/usethreads.cbu will get 'called-back' by Configure
  # after it has prompted the user for whether to use threads.
-@@ -437,7 +428,7 @@ then
+@@ -437,7 +438,7 @@ then
         DBLIB="$DBDIR/libdb.so"
         if [ -f $DBLIB ]
         then
