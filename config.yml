@@ -56,6 +56,6 @@ releases:
   - version: 5.26.3
     sha256:  9ff35a613213f29ab53975141af6825ae7d4408895538cac0922e47ab92a1477
 
-  - version: 5.28.1
-    sha256:  fea7162d4cca940a387f0587b93f6737d884bf74d8a9d7cfd978bc12cd0b202d
+  - version: 5.28.2
+    sha256:  0b0189bfa4b2da20e899b4bdd746ac402e8f746a58e4fcf5516484157f2aab07
     type:    xz
