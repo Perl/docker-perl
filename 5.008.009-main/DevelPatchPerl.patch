@@ -40,7 +40,7 @@ index 6f20c5e..684f369 100644
  		or die "Cannot exec $cpp";
  	}
 diff --git a/hints/linux.sh b/hints/linux.sh
-index ac264c3..3f38ea0 100644
+index ac264c3..a985a8e 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -13,11 +13,14 @@
@@ -123,7 +123,7 @@ index ac264c3..3f38ea0 100644
          ppc*)
              # on ppc, it seems that gcc (at least gcc 3.3.2) isn't happy
              # with -O2 ; so downgrade to -O1.
-@@ -143,93 +150,78 @@ case "$optimize" in
+@@ -143,93 +150,88 @@ case "$optimize" in
      ;;
  esac
  
@@ -235,6 +235,17 @@ index ac264c3..3f38ea0 100644
 -		;;
 -	esac
 -fi
++# For the musl libc, perl should #define _GNU_SOURCE.  Otherwise, some
++# available functions, like memem, won't be used.  See the discussion in
++# [perl #133760].  musl doesn't offer an easy way to identify it, but,
++# at least on alpine linux, the ldd --version output contains the
++# string 'musl.'
++case `ldd --version 2>&1` in
++    musl*)  ccflags="$ccflags -D_GNU_SOURCE" ;;
++        *) ;;
++esac
+ 
+-rm -f try.c a.out
 +# libquadmath is sometimes installed as gcc internal library,
 +# so contrary to our usual policy of *not* looking at gcc internal
 +# directories we now *do* look at them, in case they contain
@@ -252,7 +263,7 @@ index ac264c3..3f38ea0 100644
 +  ;;
 +esac
  
--rm -f try.c a.out
+-if /bin/sh -c exit; then
 +case "$libc" in
 +'')
 +# If you have glibc, then report the version for ./myconfig bug reporting.
@@ -278,13 +289,12 @@ index ac264c3..3f38ea0 100644
 +    done
 +    ;;
 +esac
- 
--if /bin/sh -c exit; then
++
 +if ${sh:-/bin/sh} -c exit; then
    echo ''
    echo 'You appear to have a working bash.  Good.'
  else
-@@ -296,7 +288,7 @@ fi
+@@ -296,7 +298,7 @@ fi
  #'osfmach3ppc') ccdlflags='-Wl,-E' ;;
  #esac
  
@@ -293,7 +303,7 @@ index ac264c3..3f38ea0 100644
  sparc*)
  	case "$cccdlflags" in
  	*-fpic*) cccdlflags="`echo $cccdlflags|sed 's/-fpic/-fPIC/'`" ;;
-@@ -311,24 +303,62 @@ esac
+@@ -311,24 +313,62 @@ esac
  # version of -lgdbm which is a bad idea. So if we have 'nm'
  # make sure it can read the file
  # NI-S 2003/08/07
@@ -367,7 +377,7 @@ index ac264c3..3f38ea0 100644
          if echo $libswanted | grep -v pthread >/dev/null
          then
              set `echo X "$libswanted "| sed -e 's/ c / pthread c /'`
-@@ -375,16 +405,6 @@ $define|true|[yY]*)
+@@ -375,16 +415,6 @@ $define|true|[yY]*)
      ;;
  esac
  
@@ -384,7 +394,7 @@ index ac264c3..3f38ea0 100644
  # If using g++, the Configure scan for dlopen() and (especially)
  # dlerror() might fail, easier just to forcibly hint them in.
  case "$cc" in
-@@ -408,7 +428,7 @@ then
+@@ -408,7 +438,7 @@ then
         DBLIB="$DBDIR/libdb.so"
         if [ -f $DBLIB ]
         then
