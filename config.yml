@@ -59,3 +59,7 @@ releases:
   - version: 5.28.2
     sha256:  0b0189bfa4b2da20e899b4bdd746ac402e8f746a58e4fcf5516484157f2aab07
     type:    xz
+
+  - version: 5.30.0
+    sha256:  ac501cad4af904d33370a9ea39dbb7a8ad4cb19bc7bc8a9c17d8dc3e81ef6306
+    type:    xz
