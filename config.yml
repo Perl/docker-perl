@@ -2,6 +2,7 @@
 builds:
   - main
   - slim
+  - debug
 
 options:
   common: "-Duseshrplib -Dvendorprefix=/usr/local"
