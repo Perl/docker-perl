@@ -5,9 +5,9 @@ This project is the source for the Docker perl repo; for more details,
 take a look at https://registry.hub.docker.com/_/perl/.
 
 The structure of this repo is to use the full version ID of each Perl
-version, plus a comma separate list of extensions.  Every directory is
-expected to have at least the bit specification (32bit or 64bit), and at
-the moment the only other extension is threaded.
+version, plus a comma separate list of extensions, followed by the
+Debian release codename that the resulting Docker image will be based
+from.
 
 The Docker Perl image now builds and runs in architectures other than
 `amd64`, such as [`i386`][1] and [`arm64v8`][2]; see
