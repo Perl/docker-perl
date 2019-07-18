@@ -143,7 +143,7 @@ for my $release (@{$config->{releases}}) {
     $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
 
     $release->{extra_flags}    ||= '';
-    $release->{debian_release} ||= ['stretch'];
+    $release->{debian_release} ||= ['buster'];
 
     $release->{image} = $build =~ /main/ ? 'buildpack-deps' : 'debian';
 
@@ -248,7 +248,7 @@ Dockerfiles for different Debian versions:
         - stretch
         - buster
 
-Defaults: C<stretch> for C<main> builds, C<stretch-slim> for C<slim>
+Defaults: C<buster> for C<main> builds, C<buster-slim> for C<slim>
 builds.
 
 =item extra_flags
