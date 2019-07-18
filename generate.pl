@@ -139,58 +139,60 @@ for my $release (@{$config->{releases}}) {
   }
 
   for my $build (keys %builds) {
-    $release->{url} = $url;
+    $release->{url}             = $url;
     $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
 
     $release->{extra_flags}    ||= '';
-    $release->{debian_release} ||= 'stretch';
+    $release->{debian_release} ||= ['stretch'];
 
-    if ($build =~ /main/) {
-      $release->{image} = 'buildpack-deps';
-      $release->{tag}   = $release->{debian_release};
-    }
-    else {
-      $release->{image} = 'debian';
-      $release->{tag}   = "@{[ $release->{debian_release} ]}-slim";
+    $release->{image} = $build =~ /main/ ? 'buildpack-deps' : 'debian';
+
+    if (ref $release->{debian_release} ne 'ARRAY') {
+      $release->{debian_release} = [$release->{debian_release}];
     }
 
-    my $output = $template;
-    $output =~ s/\{\{$_\}\}/$release->{$_}/mg
-      for (qw(version pause extra_flags sha256 type url image tag cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
-    $output =~ s/\{\{args\}\}/$builds{$build}/mg;
+    for my $debian_release (@{$release->{debian_release}}) {
 
-    if ($build =~ /slim/) {
-      $output =~ s/\{\{docker_slim_run_install\}\}/$docker_slim_run_install/mg;
-      $output =~ s/\{\{docker_slim_run_purge\}\}/$docker_slim_run_purge/mg;
-    }
-    else {
-      $output =~ s/\{\{docker_slim_run_install\}\}/true/mg;
-      $output =~ s/\{\{docker_slim_run_purge\}\}/true/mg;
-    }
+      my $output = $template;
+      $output =~ s/\{\{$_\}\}/$release->{$_}/mg
+        for (qw(version pause extra_flags sha256 type url image cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
+      $output =~ s/\{\{args\}\}/$builds{$build}/mg;
 
-    my $dir = sprintf "%i.%03i.%03i-%s", ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/), $build;
+      if ($build =~ /slim/) {
+        $output =~ s/\{\{docker_slim_run_install\}\}/$docker_slim_run_install/mg;
+        $output =~ s/\{\{docker_slim_run_purge\}\}/$docker_slim_run_purge/mg;
+        $output =~ s/\{\{tag\}\}/$debian_release-slim/mg;
+      }
+      else {
+        $output =~ s/\{\{docker_slim_run_install\}\}/true/mg;
+        $output =~ s/\{\{docker_slim_run_purge\}\}/true/mg;
+        $output =~ s/\{\{tag\}\}/$debian_release/mg;
+      }
 
-    mkdir $dir unless -d $dir;
+      my $dir = sprintf "%i.%03i.%03i-%s-%s", ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/), $build, $debian_release;
 
-    # Set up the generated DevelPatchPerl.patch
-    {
-      open my $fh, ">", "$dir/DevelPatchPerl.patch";
-      print $fh $patch;
-    }
+      mkdir $dir unless -d $dir;
 
-    if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
-      $output =~ s/\{\{test\}\}/make test_harness/;
-    }
-    elsif (!defined $release->{test_parallel} || $release->{test_parallel} eq "yes") {
-      $output =~ s/\{\{test\}\}/TEST_JOBS=\$(nproc) make test_harness/;
-    }
-    else {
-      die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
-    }
+      # Set up the generated DevelPatchPerl.patch
+      {
+        open my $fh, ">", "$dir/DevelPatchPerl.patch";
+        print $fh $patch;
+      }
 
-    open my $dockerfile, ">", "$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
-    print $dockerfile $output;
-    close $dockerfile;
+      if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
+        $output =~ s/\{\{test\}\}/make test_harness/;
+      }
+      elsif (!defined $release->{test_parallel} || $release->{test_parallel} eq "yes") {
+        $output =~ s/\{\{test\}\}/TEST_JOBS=\$(nproc) make test_harness/;
+      }
+      else {
+        die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
+      }
+
+      open my $dockerfile, ">", "$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
+      print $dockerfile $output;
+      close $dockerfile;
+    }
   }
 }
 
@@ -236,6 +238,15 @@ The SHA-256 of the tarball for that release.
 The Docker image tag which this Perl would build on, common to both the
 L<https://hub.docker.com/_/buildpack-deps|buildpack-deps> and
 L<https://hub.docker.com/_/debian|debian> Docker images.
+
+This can be a single tag, or a list of tags to generate multiple
+Dockerfiles for different Debian versions:
+
+    - version: 5.30.0
+      type:    xz
+      debian_release:
+        - stretch
+        - buster
 
 Defaults: C<stretch> for C<main> builds, C<stretch-slim> for C<slim>
 builds.
