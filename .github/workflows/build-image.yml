@@ -1,0 +1,35 @@
+name: Build and test latest supported Perls
+
+env:
+  VERSION: 5.030.001
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+    pull_request:
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [ 'main', 'slim', 'main,threaded', 'slim,threaded' ]
+    steps:
+      - uses: actions/checkout@master
+      - name: Clone docker-library/official-images (for testing)
+        run: |
+          git clone --depth 1 --single-branch https://github.com/docker-library/official-images.git
+      - name: Build image
+        run: |
+          docker version
+          docker build --no-cache -t perl:$VERSION $VERSION-${{ matrix.variant }}-buster
+      - name: Inspect image creation and tag time
+        run: |
+          docker image inspect --format \'{{.Created}}\' perl:$VERSION
+          docker image inspect --format \'{{.Metadata.LastTagTime}}\' perl:$VERSION
+      - name: Run tests
+        run: |
+          ./official-images/test/run.sh perl:$VERSION
