@@ -1,0 +1,31 @@
+name: Generate Dockerfiles/patches
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+    pull_request:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up git user name and email
+        run: |
+          git config --global user.email "test@github-actions"
+          git config --global user.name "GitHub Actions"
+      - uses: actions/checkout@master
+      - name: Install system perl and cpanm
+        run: |
+          sudo apt-get install --no-install-recommends -y perl cpanminus
+      - name: Install dependencies
+        run: |
+          cpanm --quiet --installdeps --notest -L local .
+      - name: Generate Dockerfiles/patches
+        run: |
+          perl -Ilocal/lib/perl5 ./generate.pl
+      - name: Show diffstat (if any)
+        run: |
+          git --no-pager diff --stat HEAD
