@@ -299,6 +299,6 @@ RUN {{docker_slim_run_install}} \
     && {{docker_slim_run_purge}} \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
 
-WORKDIR /root
+WORKDIR /
 
 CMD ["perl{{version}}","-de0"]
