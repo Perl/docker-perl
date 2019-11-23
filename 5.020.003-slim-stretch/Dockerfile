@@ -48,6 +48,6 @@ RUN apt-get update \
     && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7044* /tmp/*
 
-WORKDIR /root
+WORKDIR /
 
 CMD ["perl5.20.3","-de0"]

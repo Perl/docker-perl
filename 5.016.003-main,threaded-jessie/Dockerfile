@@ -24,6 +24,6 @@ RUN true \
     && true \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7044* /tmp/*
 
-WORKDIR /root
+WORKDIR /
 
 CMD ["perl5.16.3","-de0"]
