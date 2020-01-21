@@ -3,13 +3,7 @@ name: Build and test latest supported Perls
 env:
   VERSION: 5.030.001
 
-on:
-  push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-    pull_request:
+on: [push, pull_request]
 
 jobs:
   build-image:

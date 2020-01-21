@@ -1,12 +1,6 @@
 name: Generate Dockerfiles/patches
 
-on:
-  push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-    pull_request:
+on: [push, pull_request]
 
 jobs:
   generate:
