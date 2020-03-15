@@ -492,6 +492,54 @@ index 030db74..0d15a40 100644
  	}
      }
  
+diff --git a/lib/Time/Local.t b/lib/Time/Local.t
+index 4f8674f..5fff350 100755
+--- a/lib/Time/Local.t
++++ b/lib/Time/Local.t
+@@ -96,7 +96,7 @@ for (@time, @neg_time) {
+             if $year < 70 && ! $neg_epoch_ok;
+ 
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timelocal($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = localtime($time);
+@@ -110,7 +110,7 @@ for (@time, @neg_time) {
+         }
+ 
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timegm($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = gmtime($time);
+@@ -127,7 +127,6 @@ for (@time, @neg_time) {
+ 
+ for (@bad_time) {
+     my($year, $mon, $mday, $hour, $min, $sec) = @$_;
+-    $year -= 1900;
+     $mon--;
+ 
+     eval { timegm($sec,$min,$hour,$mday,$mon,$year) };
+@@ -136,14 +135,14 @@ for (@bad_time) {
+ }
+ 
+ {
+-    is(timelocal(0,0,1,1,0,90) - timelocal(0,0,0,1,0,90), 3600,
++    is(timelocal(0,0,1,1,0,1990) - timelocal(0,0,0,1,0,1990), 3600,
+        'one hour difference between two calls to timelocal');
+ 
+-    is(timelocal(1,2,3,1,0,100) - timelocal(1,2,3,31,11,99), 24 * 3600,
++    is(timelocal(1,2,3,1,0,2000) - timelocal(1,2,3,31,11,1999), 24 * 3600,
+        'one day difference between two calls to timelocal');
+ 
+     # Diff beween Jan 1, 1980 and Mar 1, 1980 = (31 + 29 = 60 days)
+-    is(timegm(0,0,0, 1, 2, 80) - timegm(0,0,0, 1, 0, 80), 60 * 24 * 3600,
++    is(timegm(0,0,0, 1, 2, 1980) - timegm(0,0,0, 1, 0, 1980), 60 * 24 * 3600,
+        '60 day difference between two calls to timegm');
+ }
+ 
 diff --git a/perl.c b/perl.c
 index 82e5538..b9e02fe 100644
 --- a/perl.c
