@@ -118,6 +118,44 @@ index f8ca492..204bba0 100644
 +foreach (split / /, $Config{libpth}) {
 +    $self->{LIBS}->[0] .= ' -lgdbm_compat' if -e $_.'/libgdbm_compat.so';
  }
+diff --git a/ext/SDBM_File/sdbm/sdbm.c b/ext/SDBM_File/sdbm/sdbm.c
+index c5f7aa8..c7c329a 100644
+--- a/ext/SDBM_File/sdbm/sdbm.c
++++ b/ext/SDBM_File/sdbm/sdbm.c
+@@ -78,8 +78,8 @@ sdbm_open(register char *file, register int flags, register int mode)
+ 	register char *dirname;
+ 	register char *pagname;
+ 	size_t filelen;
+-	const size_t dirfext_len = sizeof(DIRFEXT "");
+-	const size_t pagfext_len = sizeof(PAGFEXT "");
++	const size_t dirfext_size = sizeof(DIRFEXT "");
++	const size_t pagfext_size = sizeof(PAGFEXT "");
+ 
+ 	if (file == NULL || !*file)
+ 		return errno = EINVAL, (DBM *) NULL;
+@@ -88,17 +88,17 @@ sdbm_open(register char *file, register int flags, register int mode)
+  */
+ 	filelen = strlen(file);
+ 
+-	if ((dirname = (char *) malloc(filelen + dirfext_len + 1
+-				       + filelen + pagfext_len + 1)) == NULL)
++	if ((dirname = (char *) malloc(filelen + dirfext_size
++				       + filelen + pagfext_size)) == NULL)
+ 		return errno = ENOMEM, (DBM *) NULL;
+ /*
+  * build the file names
+  */
+ 	memcpy(dirname, file, filelen);
+-	memcpy(dirname + filelen, DIRFEXT, dirfext_len + 1);
+-	pagname = dirname + filelen + dirfext_len + 1;
++	memcpy(dirname + filelen, DIRFEXT, dirfext_size);
++	pagname = dirname + filelen + dirfext_size;
+ 	memcpy(pagname, file, filelen);
+-	memcpy(pagname + filelen, PAGFEXT, pagfext_len + 1);
++	memcpy(pagname + filelen, PAGFEXT, pagfext_size);
+ 
+ 	db = sdbm_prep(dirname, pagname, flags, mode);
+ 	free((char *) dirname);
 diff --git a/hints/linux.sh b/hints/linux.sh
 index c88f157..8cbe7dc 100644
 --- a/hints/linux.sh
@@ -576,6 +614,54 @@ index e400dda..e25e31a 100755
  ### warn if we are going to skip long file names
  if ($TOO_LONG) {
      diag("No long filename support - long filename extraction disabled") if ! $ENV{PERL_CORE};
+diff --git a/lib/Time/Local.t b/lib/Time/Local.t
+index 4f8674f..5fff350 100755
+--- a/lib/Time/Local.t
++++ b/lib/Time/Local.t
+@@ -96,7 +96,7 @@ for (@time, @neg_time) {
+             if $year < 70 && ! $neg_epoch_ok;
+ 
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timelocal($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = localtime($time);
+@@ -110,7 +110,7 @@ for (@time, @neg_time) {
+         }
+ 
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timegm($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = gmtime($time);
+@@ -127,7 +127,6 @@ for (@time, @neg_time) {
+ 
+ for (@bad_time) {
+     my($year, $mon, $mday, $hour, $min, $sec) = @$_;
+-    $year -= 1900;
+     $mon--;
+ 
+     eval { timegm($sec,$min,$hour,$mday,$mon,$year) };
+@@ -136,14 +135,14 @@ for (@bad_time) {
+ }
+ 
+ {
+-    is(timelocal(0,0,1,1,0,90) - timelocal(0,0,0,1,0,90), 3600,
++    is(timelocal(0,0,1,1,0,1990) - timelocal(0,0,0,1,0,1990), 3600,
+        'one hour difference between two calls to timelocal');
+ 
+-    is(timelocal(1,2,3,1,0,100) - timelocal(1,2,3,31,11,99), 24 * 3600,
++    is(timelocal(1,2,3,1,0,2000) - timelocal(1,2,3,31,11,1999), 24 * 3600,
+        'one day difference between two calls to timelocal');
+ 
+     # Diff beween Jan 1, 1980 and Mar 1, 1980 = (31 + 29 = 60 days)
+-    is(timegm(0,0,0, 1, 2, 80) - timegm(0,0,0, 1, 0, 80), 60 * 24 * 3600,
++    is(timegm(0,0,0, 1, 2, 1980) - timegm(0,0,0, 1, 0, 1980), 60 * 24 * 3600,
+        '60 day difference between two calls to timegm');
+ }
+ 
 diff --git a/lib/h2ph.t b/lib/h2ph.t
 index 27dd7b9..947fae6 100755
 --- a/lib/h2ph.t

@@ -1,14 +1,14 @@
-FROM buildpack-deps:buster
+FROM buildpack-deps:stretch
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.30.1.tar.xz -o perl-5.30.1.tar.xz \
-    && echo '7336cd3ed0535eb61b76a71350effcfa7c88b44faf37d64d70952ced5d38cd35 *perl-5.30.1.tar.xz' | sha256sum -c - \
-    && tar --strip-components=1 -xaf perl-5.30.1.tar.xz -C /usr/src/perl \
-    && rm perl-5.30.1.tar.xz \
+    && curl -SL https://www.cpan.org/src/5.0/perl-5.30.2.tar.xz -o perl-5.30.2.tar.xz \
+    && echo 'a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259 *perl-5.30.2.tar.xz' | sha256sum -c - \
+    && tar --strip-components=1 -xaf perl-5.30.2.tar.xz -C /usr/src/perl \
+    && rm perl-5.30.2.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -26,4 +26,4 @@ RUN true \
 
 WORKDIR /
 
-CMD ["perl5.30.1","-de0"]
+CMD ["perl5.30.2","-de0"]
