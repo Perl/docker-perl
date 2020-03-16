@@ -6,8 +6,6 @@ use YAML::XS;
 use Devel::PatchPerl;
 use LWP::Simple;
 
-use version 0.77;
-
 sub die_with_sample {
   die <<EOF;
 
@@ -81,9 +79,6 @@ my $template = do {
   local $/;
   <DATA>;
 };
-
-# fetch Time-Local test patch for fixing failures upon entering year 2020
-my $time_local_patch = get 'https://rt.cpan.org/Public/Ticket/Attachment/1776857/956088/0001-Fix-Time-Local-tests.patch';
 
 my %builds;
 
@@ -182,14 +177,6 @@ for my $release (@{$config->{releases}}) {
       {
         open my $fh, ">", "$dir/DevelPatchPerl.patch";
         print $fh $patch;
-      }
-
-      # Install additional patch for Time::Local on perls between 5.26 to 5.30
-      if ( version->parse("v$release->{version}") >= version->parse('v5.26.0')
-        && version->parse("v$release->{version}") < version->parse('v5.30.0'))
-      {
-        open my $fh, '>', "$dir/Fix-Time-Local-tests.patch";
-        print $fh $time_local_patch;
       }
 
       if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
