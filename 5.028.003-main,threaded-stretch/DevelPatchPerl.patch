@@ -1,0 +1,169 @@
+diff --git a/Configure b/Configure
+index f99377e..e020242 100755
+--- a/Configure
++++ b/Configure
+@@ -4689,7 +4689,7 @@ else
+ fi
+ $rm -f try try.*
+ case "$gccversion" in
+-1*) cpp=`./loc gcc-cpp $cpp $pth` ;;
++1.*) cpp=`./loc gcc-cpp $cpp $pth` ;;
+ esac
+ case "$gccversion" in
+ '') gccosandvers='' ;;
+@@ -4729,7 +4729,7 @@ esac
+ # gcc 3.* complain about adding -Idirectories that they already know about,
+ # so we will take those off from locincpth.
+ case "$gccversion" in
+-3*)
++3.*)
+     echo "main(){}">try.c
+     for incdir in $locincpth; do
+        warn=`$cc $ccflags -I$incdir -c try.c 2>&1 | \
+@@ -5455,13 +5455,13 @@ fi
+ case "$hint" in
+ default|recommended)
+ 	case "$gccversion" in
+-	1*) dflt="$dflt -fpcc-struct-return" ;;
++	1.*) dflt="$dflt -fpcc-struct-return" ;;
+ 	esac
+ 	case "$optimize:$DEBUGGING" in
+ 	*-g*:old) dflt="$dflt -DDEBUGGING";;
+ 	esac
+ 	case "$gccversion" in
+-	2*) if $test -d /etc/conf/kconfig.d &&
++	2.*) if $test -d /etc/conf/kconfig.d &&
+ 			$contains _POSIX_VERSION $usrinc/sys/unistd.h >/dev/null 2>&1
+ 		then
+ 			# Interactive Systems (ISC) POSIX mode.
+@@ -5470,7 +5470,7 @@ default|recommended)
+ 		;;
+ 	esac
+ 	case "$gccversion" in
+-	1*) ;;
++	1.*) ;;
+ 	2.[0-8]*) ;;
+ 	?*)	set strict-aliasing -fno-strict-aliasing
+ 		eval $checkccflag
+@@ -5588,7 +5588,7 @@ case "$cppflags" in
+     ;;
+ esac
+ case "$gccversion" in
+-1*) cppflags="$cppflags -D__GNUC__"
++1.*) cppflags="$cppflags -D__GNUC__"
+ esac
+ case "$mips_type" in
+ '');;
+@@ -23026,7 +23026,7 @@ fi
+ 
+ : add -D_FORTIFY_SOURCE if feasible and not already there
+ case "$gccversion" in
+-[4567].*)	case "$optimize$ccflags" in
++[456789].*|[1-9][0-9]*)	case "$optimize$ccflags" in
+ 	*-O*)	case "$ccflags$cppsymbols" in
+ 		*_FORTIFY_SOURCE=*) # Don't add it again.
+ 			echo "You seem to have -D_FORTIFY_SOURCE already, not adding it." >&4
+diff --git a/cpan/Time-Local/t/Local.t b/cpan/Time-Local/t/Local.t
+index 6341396..701d22d 100644
+--- a/cpan/Time-Local/t/Local.t
++++ b/cpan/Time-Local/t/Local.t
+@@ -85,19 +85,17 @@ my $epoch_is_64
+ 
+ for ( @time, @neg_time ) {
+     my ( $year, $mon, $mday, $hour, $min, $sec ) = @$_;
+-    $year -= 1900;
+     $mon--;
+ 
+ SKIP: {
+         skip '1970 test on VOS fails.', 12
+-            if $^O eq 'vos' && $year == 70;
++            if $^O eq 'vos' && $year == 1970;
+         skip 'this platform does not support negative epochs.', 12
+-            if $year < 70 && !$neg_epoch_ok;
++            if $year < 1970 && !$neg_epoch_ok;
+ 
+         # Test timelocal()
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
+-            my $time = timelocal( $sec, $min, $hour, $mday, $mon, $year_in );
++            my $time = timelocal( $sec, $min, $hour, $mday, $mon, $year );
+ 
+             my ( $s, $m, $h, $D, $M, $Y ) = localtime($time);
+ 
+@@ -106,13 +104,12 @@ SKIP: {
+             is( $h, $hour,     "timelocal hour for @$_" );
+             is( $D, $mday,     "timelocal day for @$_" );
+             is( $M, $mon,      "timelocal month for @$_" );
+-            is( $Y, $year,     "timelocal year for @$_" );
++            is( $Y, $year - 1900,     "timelocal year for @$_" );
+         }
+ 
+         # Test timegm()
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
+-            my $time = timegm( $sec, $min, $hour, $mday, $mon, $year_in );
++            my $time = timegm( $sec, $min, $hour, $mday, $mon, $year );
+ 
+             my ( $s, $m, $h, $D, $M, $Y ) = gmtime($time);
+ 
+@@ -121,14 +118,13 @@ SKIP: {
+             is( $h, $hour,     "timegm hour for @$_" );
+             is( $D, $mday,     "timegm day for @$_" );
+             is( $M, $mon,      "timegm month for @$_" );
+-            is( $Y, $year,     "timegm year for @$_" );
++            is( $Y, $year - 1900,     "timegm year for @$_" );
+         }
+     }
+ }
+ 
+ for (@bad_time) {
+     my ( $year, $mon, $mday, $hour, $min, $sec ) = @$_;
+-    $year -= 1900;
+     $mon--;
+ 
+     eval { timegm( $sec, $min, $hour, $mday, $mon, $year ) };
+@@ -229,6 +225,30 @@ SKIP:
+     );
+ }
+ 
++# 2-digit years
++{
++	my $current_year = ( localtime() )[5];
++	my $pre_break    = ( $current_year + 49 ) - 100;
++	my $break        = ( $current_year + 50 ) - 100;
++	my $post_break   = ( $current_year + 51 ) - 100;
++
++	is(
++		( ( localtime( timelocal( 0, 0, 0, 1, 1, $pre_break ) ) )[5] ),
++		$pre_break + 100,
++		"year $pre_break is treated as next century",
++	);
++	is(
++		( ( localtime( timelocal( 0, 0, 0, 1, 1, $break ) ) )[5] ),
++		$break + 100,
++		"year $break is treated as next century",
++	);
++	is(
++		( ( localtime( timelocal( 0, 0, 0, 1, 1, $post_break ) ) )[5] ),
++		$post_break,
++		"year $post_break is treated as current century",
++	);
++}
++
+ SKIP:
+ {
+     skip 'These tests only run for the package maintainer.', 8
+diff --git a/hints/linux.sh b/hints/linux.sh
+index a985a8e..8cbe7dc 100644
+--- a/hints/linux.sh
++++ b/hints/linux.sh
+@@ -165,6 +165,9 @@ esac
+ # plibpth to bypass this check.
+ if [ -x /usr/bin/gcc ] ; then
+     gcc=/usr/bin/gcc
++# clang also provides -print-search-dirs
++elif ${cc:-cc} --version 2>/dev/null | grep -q '^clang ' ; then
++    gcc=${cc:-cc}
+ else
+     gcc=gcc
+ fi
