@@ -1,7 +1,7 @@
 name: Build and test latest supported Perls
 
 env:
-  VERSION: 5.030.002
+  VERSION: 5.030.003
 
 on: [push, pull_request]
 
