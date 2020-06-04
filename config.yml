@@ -62,15 +62,15 @@ releases:
       - stretch
       - buster
 
-  - version: 5.28.2
-    sha256:  0b0189bfa4b2da20e899b4bdd746ac402e8f746a58e4fcf5516484157f2aab07
+  - version: 5.28.3
+    sha256:  77dc1ddf541643af14d585867d3d0741cce45d0dbe8f1467024e63165d9e2fc5
     type:    xz
     debian_release:
       - stretch
       - buster
 
-  - version: 5.30.2
-    sha256:  a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259
+  - version: 5.30.3
+    sha256:  6967595f2e3f3a94544c35152f9a25e0cb8ea24ae45f4bf1882f2e33f4a400f4
     type:    xz
     debian_release:
       - stretch
