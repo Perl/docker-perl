@@ -1,7 +1,25 @@
 diff --git a/Configure b/Configure
-index 01fa3c0..f986141 100755
+index 01fa3c0..46dd11c 100755
 --- a/Configure
 +++ b/Configure
+@@ -4518,7 +4518,7 @@ else
+ fi
+ $rm -f try try.*
+ case "$gccversion" in
+-1*) cpp=`./loc gcc-cpp $cpp $pth` ;;
++1.*) cpp=`./loc gcc-cpp $cpp $pth` ;;
+ esac
+ case "$gccversion" in
+ '') gccosandvers='' ;;
+@@ -4558,7 +4558,7 @@ esac
+ # gcc 3.* complain about adding -Idirectories that they already know about,
+ # so we will take those off from locincpth.
+ case "$gccversion" in
+-3*)
++3.*)
+     echo "main(){}">try.c
+     for incdir in $locincpth; do
+        warn=`$cc $ccflags -I$incdir -c try.c 2>&1 | \
 @@ -4570,6 +4570,22 @@ case "$gccversion" in
      $rm -f try try.*
  esac
@@ -25,6 +43,40 @@ index 01fa3c0..f986141 100755
  : What should the include directory be ?
  echo " "
  $echo $n "Hmm...  $c"
+@@ -5110,13 +5126,13 @@ fi
+ case "$hint" in
+ default|recommended)
+ 	case "$gccversion" in
+-	1*) dflt="$dflt -fpcc-struct-return" ;;
++	1.*) dflt="$dflt -fpcc-struct-return" ;;
+ 	esac
+ 	case "$optimize:$DEBUGGING" in
+ 	*-g*:old) dflt="$dflt -DDEBUGGING";;
+ 	esac
+ 	case "$gccversion" in
+-	2*) if $test -d /etc/conf/kconfig.d &&
++	2.*) if $test -d /etc/conf/kconfig.d &&
+ 			$contains _POSIX_VERSION $usrinc/sys/unistd.h >/dev/null 2>&1
+ 		then
+ 			# Interactive Systems (ISC) POSIX mode.
+@@ -5125,7 +5141,7 @@ default|recommended)
+ 		;;
+ 	esac
+ 	case "$gccversion" in
+-	1*) ;;
++	1.*) ;;
+ 	2.[0-8]*) ;;
+ 	?*)	set strict-aliasing -fno-strict-aliasing
+ 		eval $checkccflag
+@@ -5227,7 +5243,7 @@ case "$cppflags" in
+ *)  cppflags="$cppflags $ccflags" ;;
+ esac
+ case "$gccversion" in
+-1*) cppflags="$cppflags -D__GNUC__"
++1.*) cppflags="$cppflags -D__GNUC__"
+ esac
+ case "$mips_type" in
+ '');;
 diff --git a/ext/Errno/Errno_pm.PL b/ext/Errno/Errno_pm.PL
 index 124b8fc..670fabc 100644
 --- a/ext/Errno/Errno_pm.PL
@@ -703,6 +755,24 @@ index 94f2b13..5f30040 100644
  #       endif
  
  #       ifdef OS2
+diff --git a/pp.c b/pp.c
+index 1c8620c..bbb0129 100644
+--- a/pp.c
++++ b/pp.c
+@@ -3493,8 +3493,12 @@ PP(pp_crypt)
+ #if defined(__GLIBC__) || defined(__EMX__)
+ 	if (PL_reentrant_buffer->_crypt_struct_buffer) {
+ 	    PL_reentrant_buffer->_crypt_struct_buffer->initialized = 0;
+-	    /* work around glibc-2.2.5 bug */
++#if (defined(__GLIBC__) && __GLIBC__ == 2) && \
++    (defined(__GLIBC_MINOR__) && __GLIBC_MINOR__ >= 2 && __GLIBC_MINOR__ < 4)
++	    /* work around glibc-2.2.5 bug, has been fixed at some
++	     * time in glibc-2.3.X */
+ 	    PL_reentrant_buffer->_crypt_struct_buffer->current_saltbits = 0;
++#endif
+ 	}
+ #endif
+     }
 diff --git a/t/op/hash.t b/t/op/hash.t
 index 9bde518..45eb782 100755
 --- a/t/op/hash.t
