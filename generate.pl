@@ -5,7 +5,6 @@ use warnings;
 use YAML::XS;
 use Devel::PatchPerl;
 use LWP::Simple;
-use version 0.77;
 
 sub die_with_sample {
   die <<EOF;
@@ -103,7 +102,6 @@ for my $build (@{$config->{builds}}) {
 }
 
 for my $release (@{$config->{releases}}) {
-  next unless version->parse($release->{version}) >= version->parse('5.28.0');
   do { die_with_sample unless $release->{$_} }
     for (qw(version sha256));
 
