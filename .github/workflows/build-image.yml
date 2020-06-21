@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         variant: [ 'main', 'slim', 'main,threaded', 'slim,threaded' ]
-        perl-version: [ '5.030.003', '5.028.003' ]
+        perl-version: [ '5.032.000', '5.030.003' ]
     steps:
       - uses: actions/checkout@master
       - name: Clone docker-library/official-images (for testing)
