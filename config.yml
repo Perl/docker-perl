@@ -75,3 +75,10 @@ releases:
     debian_release:
       - stretch
       - buster
+
+  - version: 5.32.0
+    sha256:  6f436b447cf56d22464f980fac1916e707a040e96d52172984c5d184c09b859b
+    type:    xz
+    debian_release:
+      - stretch
+      - buster
