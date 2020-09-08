@@ -1,0 +1,33 @@
+name: Build and test Perl 5.32 on alpine
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  build-alpine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Clone docker-library/official-images (for testing)
+        run: |
+          git clone --depth 1 --single-branch https://github.com/docker-library/official-images.git
+      - name: Build image
+        run: |
+          docker version
+          docker build --no-cache -t perl:5.32-alpine alpine
+          docker build --no-cache -t perl:5.32-alpine-threaded alpine,threaded
+      - name: Inspect image creation and tag time
+        run: |
+          docker image inspect --format \'{{.Created}}\' perl:5.32-alpine
+          docker image inspect --format \'{{.Metadata.LastTagTime}}\' perl:5.32-alpine
+          docker image inspect --format \'{{.Created}}\' perl:5.32-alpine-threaded
+          docker image inspect --format \'{{.Metadata.LastTagTime}}\' perl:5.32-alpine-threaded
+      - name: Run tests
+        run: |
+          ./official-images/test/run.sh perl:5.32-alpine
+          ./official-images/test/run.sh perl:5.32-alpine-threaded
