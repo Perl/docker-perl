@@ -1,31 +1,24 @@
-FROM alpine:latest
-MAINTAINER Peter Martini <PeterCMartini@GMail.com>
+FROM alpine:3.12
+LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
-RUN mkdir -p /usr/src/perl
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
-ENV PERL_CPANM_OPT --no-wget
-
 RUN set -x \
-    && NPROC=$(getconf _NPROCESSORS_ONLN) \
-    && apk add --no-cache --virtual .build-deps curl procps tar build-base make \
-    && curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.22.1.tar.bz2 -o perl-5.22.1.tar.bz2 \
-    && echo '29f9b320b0299577a3e1d02e9e8ef8f26f160332 *perl-5.22.1.tar.bz2' | sha1sum -c - \
-    && tar --strip-components=1 -xjf perl-5.22.1.tar.bz2 -C /usr/src/perl \
-    && rm perl-5.22.1.tar.bz2 \
+    && apk add --no-cache --virtual .build-deps curl procps tar build-base make xz \
+    && curl -SL https://www.cpan.org/src/5.0/perl-5.32.0.tar.xz -o perl-5.32.0.tar.xz \
+    && echo '6f436b447cf56d22464f980fac1916e707a040e96d52172984c5d184c09b859b *perl-5.32.0.tar.xz' | sha256sum -c - \
+    && tar --strip-components=1 -xaf perl-5.32.0.tar.xz -C /usr/src/perl \
+    && rm perl-5.32.0.tar.xz \
     && cat *.patch | patch -p1 \
     && ./Configure -Duse64bitall -Duseshrplib  -des \
-    && sed -i -e "s,\(d_setlocale=\)'define',\1'undef',g" ./config.sh \
-    && ./Configure -S \
-    && install -m0644 ./config.sh ./xconfig.sh \
-    && make -j$NPROC \
-    && TEST_JOBS=$NPROC make test_harness \
+    && make -j$(nproc) \
+    && TEST_JOBS=$(nproc) make test_harness \
     && make install \
     && cd /usr/src \
-    && curl -LO https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm \
-    && chmod +x cpanm \
-    && ./cpanm App::cpanminus \
+    && curl -LO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7044.tar.gz \
+    && echo '9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3 *App-cpanminus-1.7044.tar.gz' | sha256sum -c - \
+    && tar -xzf App-cpanminus-1.7044.tar.gz && cd App-cpanminus-1.7044 && perl bin/cpanm . && cd /root \
     && runDeps="$( \
         scanelf --needed --nobanner --recursive /usr/local \
             | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
@@ -35,7 +28,7 @@ RUN set -x \
         )" \
     && apk add --virtual .perl-rundeps $runDeps make \
     && apk del .build-deps \
-    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /tmp/*
+    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7044* /tmp/*
 
 WORKDIR /root
 
