@@ -1,0 +1,35 @@
+FROM alpine:3.12
+LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
+
+COPY *.patch /usr/src/perl/
+WORKDIR /usr/src/perl
+
+RUN set -x \
+    && apk add --no-cache --virtual .build-deps curl procps tar build-base make xz \
+    && curl -SL https://www.cpan.org/src/5.0/perl-5.32.0.tar.xz -o perl-5.32.0.tar.xz \
+    && echo '6f436b447cf56d22464f980fac1916e707a040e96d52172984c5d184c09b859b *perl-5.32.0.tar.xz' | sha256sum -c - \
+    && tar --strip-components=1 -xaf perl-5.32.0.tar.xz -C /usr/src/perl \
+    && rm perl-5.32.0.tar.xz \
+    && cat *.patch | patch -p1 \
+    && ./Configure -Duse64bitall -Dusethreads -Duseshrplib  -des \
+    && make -j$(nproc) \
+    && TEST_JOBS=$(nproc) make test_harness \
+    && make install \
+    && cd /usr/src \
+    && curl -LO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7044.tar.gz \
+    && echo '9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3 *App-cpanminus-1.7044.tar.gz' | sha256sum -c - \
+    && tar -xzf App-cpanminus-1.7044.tar.gz && cd App-cpanminus-1.7044 && perl bin/cpanm . && cd /root \
+    && runDeps="$( \
+        scanelf --needed --nobanner --recursive /usr/local \
+            | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+            | sort -u \
+            | xargs -r apk info --installed \
+            | sort -u \
+        )" \
+    && apk add --virtual .perl-rundeps $runDeps make \
+    && apk del .build-deps \
+    && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7044* /tmp/*
+
+WORKDIR /root
+
+CMD ["perl5.22.1","-de0"]
