@@ -26,7 +26,7 @@ RUN set -x \
             | xargs -r apk info --installed \
             | sort -u \
         )" \
-    && apk add --virtual .perl-rundeps $runDeps make \
+    && apk add --virtual .perl-rundeps $runDeps make wget \
     && apk del .build-deps \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7044* /tmp/*
 
