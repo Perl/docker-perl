@@ -32,4 +32,4 @@ RUN set -x \
 
 WORKDIR /root
 
-CMD ["perl5.22.1","-de0"]
+CMD ["perl5.32.0","-de0"]
