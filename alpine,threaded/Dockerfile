@@ -5,13 +5,16 @@ COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN set -x \
-    && apk add --no-cache --virtual .build-deps curl procps tar build-base make xz \
+    && apk add --no-cache --virtual .build-deps curl dpkg dpkg-dev procps tar build-base make xz \
     && curl -SL https://www.cpan.org/src/5.0/perl-5.32.0.tar.xz -o perl-5.32.0.tar.xz \
     && echo '6f436b447cf56d22464f980fac1916e707a040e96d52172984c5d184c09b859b *perl-5.32.0.tar.xz' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.32.0.tar.xz -C /usr/src/perl \
     && rm perl-5.32.0.tar.xz \
     && cat *.patch | patch -p1 \
-    && ./Configure -Duse64bitall -Dusethreads -Duseshrplib  -des \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
+    && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local  -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
