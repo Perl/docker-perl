@@ -19,8 +19,8 @@ jobs:
       - name: Build image
         run: |
           docker version
-          docker build --no-cache -t perl:5.32-alpine alpine
-          docker build --no-cache -t perl:5.32-alpine-threaded alpine,threaded
+          docker build --no-cache -t perl:5.32-alpine 5.032.000-alpine
+          docker build --no-cache -t perl:5.32-alpine-threaded 5.032.000-alpine,threaded
       - name: Inspect image creation and tag time
         run: |
           docker image inspect --format \'{{.Created}}\' perl:5.32-alpine

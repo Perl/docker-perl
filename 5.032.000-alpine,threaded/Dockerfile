@@ -28,6 +28,7 @@ RUN set -x \
             | sort -u \
             | xargs -r apk info --installed \
             | sort -u \
+            | grep -v perl \
         )" \
     && apk add --virtual .perl-rundeps $runDeps make wget \
     && apk del .build-deps \
