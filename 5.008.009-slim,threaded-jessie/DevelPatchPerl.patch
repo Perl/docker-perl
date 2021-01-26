@@ -119,7 +119,7 @@ index 6f20c5e..684f369 100644
  		or die "Cannot exec $cpp";
  	}
 diff --git a/hints/linux.sh b/hints/linux.sh
-index ac264c3..8cbe7dc 100644
+index ac264c3..c749f0f 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -13,11 +13,14 @@
@@ -177,7 +177,8 @@ index ac264c3..8cbe7dc 100644
 +
  # Check if we're about to use Intel's ICC compiler
  case "`${cc:-cc} -V 2>&1`" in
- *"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
+-*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
++*"Intel(R) C"*" Compiler"*)
 +    # record the version, formats:
 +    # icc (ICC) 10.1 20080801
 +    # icpc (ICC) 10.1 20080801

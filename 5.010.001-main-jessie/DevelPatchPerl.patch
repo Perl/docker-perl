@@ -209,7 +209,7 @@ index c5f7aa8..c7c329a 100644
  	db = sdbm_prep(dirname, pagname, flags, mode);
  	free((char *) dirname);
 diff --git a/hints/linux.sh b/hints/linux.sh
-index c88f157..8cbe7dc 100644
+index c88f157..c749f0f 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -13,11 +13,14 @@
@@ -268,7 +268,8 @@ index c88f157..8cbe7dc 100644
 +
  # Check if we're about to use Intel's ICC compiler
  case "`${cc:-cc} -V 2>&1`" in
- *"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
+-*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
++*"Intel(R) C"*" Compiler"*)
 +    # record the version, formats:
 +    # icc (ICC) 10.1 20080801
 +    # icpc (ICC) 10.1 20080801

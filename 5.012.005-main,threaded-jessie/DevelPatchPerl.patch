@@ -282,7 +282,7 @@ index 61a15a8..8bf0a0b 100755
  }
  
 diff --git a/hints/linux.sh b/hints/linux.sh
-index 0519eca..8cbe7dc 100644
+index 0519eca..c749f0f 100644
 --- a/hints/linux.sh
 +++ b/hints/linux.sh
 @@ -13,11 +13,14 @@
@@ -332,7 +332,7 @@ index 0519eca..8cbe7dc 100644
  fi
  
  # Configure may fail to find lstat() since it's a static/inline
-@@ -84,6 +80,9 @@ case "$usemymalloc" in
+@@ -84,9 +80,12 @@ case "$usemymalloc" in
  '') usemymalloc='n' ;;
  esac
  
@@ -341,7 +341,11 @@ index 0519eca..8cbe7dc 100644
 +
  # Check if we're about to use Intel's ICC compiler
  case "`${cc:-cc} -V 2>&1`" in
- *"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
+-*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
++*"Intel(R) C"*" Compiler"*)
+     # record the version, formats:
+     # icc (ICC) 10.1 20080801
+     # icpc (ICC) 10.1 20080801
 @@ -97,7 +96,7 @@ case "`${cc:-cc} -V 2>&1`" in
      # The -no-gcc flag is needed otherwise, icc pretends (poorly) to be gcc
      ccflags="-we147 -mp -no-gcc $ccflags"
