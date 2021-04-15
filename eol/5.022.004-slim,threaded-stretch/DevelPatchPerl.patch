@@ -1,0 +1,264 @@
+diff --git a/Configure b/Configure
+index 5f5f279..8ce5cbb 100755
+--- a/Configure
++++ b/Configure
+@@ -4658,7 +4658,7 @@ else
+ fi
+ $rm -f try try.*
+ case "$gccversion" in
+-1*) cpp=`./loc gcc-cpp $cpp $pth` ;;
++1.*) cpp=`./loc gcc-cpp $cpp $pth` ;;
+ esac
+ case "$gccversion" in
+ '') gccosandvers='' ;;
+@@ -4698,7 +4698,7 @@ esac
+ # gcc 3.* complain about adding -Idirectories that they already know about,
+ # so we will take those off from locincpth.
+ case "$gccversion" in
+-3*)
++3.*)
+     echo "main(){}">try.c
+     for incdir in $locincpth; do
+        warn=`$cc $ccflags -I$incdir -c try.c 2>&1 | \
+@@ -5410,13 +5410,13 @@ fi
+ case "$hint" in
+ default|recommended)
+ 	case "$gccversion" in
+-	1*) dflt="$dflt -fpcc-struct-return" ;;
++	1.*) dflt="$dflt -fpcc-struct-return" ;;
+ 	esac
+ 	case "$optimize:$DEBUGGING" in
+ 	*-g*:old) dflt="$dflt -DDEBUGGING";;
+ 	esac
+ 	case "$gccversion" in
+-	2*) if $test -d /etc/conf/kconfig.d &&
++	2.*) if $test -d /etc/conf/kconfig.d &&
+ 			$contains _POSIX_VERSION $usrinc/sys/unistd.h >/dev/null 2>&1
+ 		then
+ 			# Interactive Systems (ISC) POSIX mode.
+@@ -5425,7 +5425,7 @@ default|recommended)
+ 		;;
+ 	esac
+ 	case "$gccversion" in
+-	1*) ;;
++	1.*) ;;
+ 	2.[0-8]*) ;;
+ 	?*)	set strict-aliasing -fno-strict-aliasing
+ 		eval $checkccflag
+@@ -5534,7 +5534,7 @@ case "$cppflags" in
+ *)  cppflags="$cppflags $ccflags" ;;
+ esac
+ case "$gccversion" in
+-1*) cppflags="$cppflags -D__GNUC__"
++1.*) cppflags="$cppflags -D__GNUC__"
+ esac
+ case "$mips_type" in
+ '');;
+@@ -23010,7 +23010,7 @@ fi
+ 
+ : add -D_FORTIFY_SOURCE if feasible and not already there
+ case "$gccversion" in
+-[45].*)	case "$optimize$ccflags" in
++[456789].*|[1-9][0-9]*)	case "$optimize$ccflags" in
+ 	*-O*)	case "$ccflags$cppsymbols" in
+ 		*_FORTIFY_SOURCE=*) # Don't add it again.
+ 			echo "You seem to have -D_FORTIFY_SOURCE already, not adding it." >&4
+diff --git a/cpan/Time-Local/t/Local.t b/cpan/Time-Local/t/Local.t
+index 472e71a..0a852a0 100644
+--- a/cpan/Time-Local/t/Local.t
++++ b/cpan/Time-Local/t/Local.t
+@@ -91,7 +91,7 @@ for (@time, @neg_time) {
+ 
+         # Test timelocal()
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timelocal($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = localtime($time);
+@@ -107,7 +107,7 @@ for (@time, @neg_time) {
+ 
+         # Test timegm()
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timegm($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = gmtime($time);
+@@ -125,7 +125,6 @@ for (@time, @neg_time) {
+ 
+ for (@bad_time) {
+     my($year, $mon, $mday, $hour, $min, $sec) = @$_;
+-    $year -= 1900;
+     $mon--;
+ 
+     eval { timegm($sec,$min,$hour,$mday,$mon,$year) };
+@@ -134,14 +133,14 @@ for (@bad_time) {
+ }
+ 
+ {
+-    is(timelocal(0,0,1,1,0,90) - timelocal(0,0,0,1,0,90), 3600,
++    is(timelocal(0,0,1,1,0,1990) - timelocal(0,0,0,1,0,1990), 3600,
+        'one hour difference between two calls to timelocal');
+ 
+-    is(timelocal(1,2,3,1,0,100) - timelocal(1,2,3,31,11,99), 24 * 3600,
++    is(timelocal(1,2,3,1,0,2000) - timelocal(1,2,3,31,11,1999), 24 * 3600,
+        'one day difference between two calls to timelocal');
+ 
+     # Diff beween Jan 1, 1980 and Mar 1, 1980 = (31 + 29 = 60 days)
+-    is(timegm(0,0,0, 1, 2, 80) - timegm(0,0,0, 1, 0, 80), 60 * 24 * 3600,
++    is(timegm(0,0,0, 1, 2, 1980) - timegm(0,0,0, 1, 0, 1980), 60 * 24 * 3600,
+        '60 day difference between two calls to timegm');
+ }
+ 
+diff --git a/hints/linux.sh b/hints/linux.sh
+index fb5a46e..c749f0f 100644
+--- a/hints/linux.sh
++++ b/hints/linux.sh
+@@ -85,7 +85,7 @@ uname_minus_m="${uname_minus_m:-"$targetarch"}"
+ 
+ # Check if we're about to use Intel's ICC compiler
+ case "`${cc:-cc} -V 2>&1`" in
+-*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
++*"Intel(R) C"*" Compiler"*)
+     # record the version, formats:
+     # icc (ICC) 10.1 20080801
+     # icpc (ICC) 10.1 20080801
+@@ -165,6 +165,9 @@ esac
+ # plibpth to bypass this check.
+ if [ -x /usr/bin/gcc ] ; then
+     gcc=/usr/bin/gcc
++# clang also provides -print-search-dirs
++elif ${cc:-cc} --version 2>/dev/null | grep -q '^clang ' ; then
++    gcc=${cc:-cc}
+ else
+     gcc=gcc
+ fi
+@@ -178,6 +181,16 @@ case "$plibpth" in
+     ;;
+ esac
+ 
++# For the musl libc, perl should #define _GNU_SOURCE.  Otherwise, some
++# available functions, like memem, won't be used.  See the discussion in
++# [perl #133760].  musl doesn't offer an easy way to identify it, but,
++# at least on alpine linux, the ldd --version output contains the
++# string 'musl.'
++case `ldd --version 2>&1` in
++    musl*)  ccflags="$ccflags -D_GNU_SOURCE" ;;
++        *) ;;
++esac
++
+ # libquadmath is sometimes installed as gcc internal library,
+ # so contrary to our usual policy of *not* looking at gcc internal
+ # directories we now *do* look at them, in case they contain
+@@ -221,92 +234,6 @@ case "$libc" in
+     ;;
+ esac
+ 
+-# Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
+-# for this test.
+-cat >try.c <<'EOM'
+-/* Test for whether ELF binaries are produced */
+-#include <fcntl.h>
+-#include <stdlib.h>
+-#include <unistd.h>
+-main() {
+-	char buffer[4];
+-	int i=open("a.out",O_RDONLY);
+-	if(i==-1)
+-		exit(1); /* fail */
+-	if(read(i,&buffer[0],4)<4)
+-		exit(1); /* fail */
+-	if(buffer[0] != 127 || buffer[1] != 'E' ||
+-           buffer[2] != 'L' || buffer[3] != 'F')
+-		exit(1); /* fail */
+-	exit(0); /* succeed (yes, it's ELF) */
+-}
+-EOM
+-if ${cc:-gcc} $ccflags $ldflags try.c >/dev/null 2>&1 && $run ./a.out; then
+-    cat <<'EOM' >&4
+-
+-You appear to have ELF support.  I'll try to use it for dynamic loading.
+-If dynamic loading doesn't work, read hints/linux.sh for further information.
+-EOM
+-
+-else
+-    cat <<'EOM' >&4
+-
+-You don't have an ELF gcc.  I will use dld if possible.  If you are
+-using a version of DLD earlier than 3.2.6, or don't have it at all, you
+-should probably upgrade. If you are forced to use 3.2.4, you should
+-uncomment a couple of lines in hints/linux.sh and restart Configure so
+-that shared libraries will be disallowed.
+-
+-EOM
+-    lddlflags="-r $lddlflags"
+-    # These empty values are so that Configure doesn't put in the
+-    # Linux ELF values.
+-    ccdlflags=' '
+-    cccdlflags=' '
+-    ccflags="-DOVR_DBL_DIG=14 $ccflags"
+-    so='sa'
+-    dlext='o'
+-    nm_so_opt=' '
+-    ## If you are using DLD 3.2.4 which does not support shared libs,
+-    ## uncomment the next two lines:
+-    #ldflags="-static"
+-    #so='none'
+-
+-	# In addition, on some systems there is a problem with perl and NDBM
+-	# which causes AnyDBM and NDBM_File to lock up. This is evidenced
+-	# in the tests as AnyDBM just freezing.  Apparently, this only
+-	# happens on a.out systems, so we disable NDBM for all a.out linux
+-	# systems.  If someone can suggest a more robust test
+-	#  that would be appreciated.
+-	#
+-	# More info:
+-	# Date: Wed, 7 Feb 1996 03:21:04 +0900
+-	# From: Jeffrey Friedl <jfriedl@nff.ncl.omron.co.jp>
+-	#
+-	# I tried compiling with DBM support and sure enough things locked up
+-	# just as advertised. Checking into it, I found that the lockup was
+-	# during the call to dbm_open. Not *in* dbm_open -- but between the call
+-	# to and the jump into.
+-	#
+-	# To make a long story short, making sure that the *.a and *.sa pairs of
+-	#   /usr/lib/lib{m,db,gdbm}.{a,sa}
+-	# were perfectly in sync took care of it.
+-	#
+-	# This will generate a harmless Whoa There! message
+-	case "$d_dbm_open" in
+-	'')	cat <<'EOM' >&4
+-
+-Disabling ndbm.  This will generate a Whoa There message in Configure.
+-Read hints/linux.sh for further information.
+-EOM
+-		# You can override this with Configure -Dd_dbm_open
+-		d_dbm_open=undef
+-		;;
+-	esac
+-fi
+-
+-rm -f try.c a.out
+-
+ if ${sh:-/bin/sh} -c exit; then
+   echo ''
+   echo 'You appear to have a working bash.  Good.'
+diff --git a/pp.c b/pp.c
+index 3173c5a..f2a37bd 100644
+--- a/pp.c
++++ b/pp.c
+@@ -3624,8 +3624,12 @@ PP(pp_crypt)
+ #if defined(__GLIBC__) || defined(__EMX__)
+ 	if (PL_reentrant_buffer->_crypt_struct_buffer) {
+ 	    PL_reentrant_buffer->_crypt_struct_buffer->initialized = 0;
+-	    /* work around glibc-2.2.5 bug */
++#if (defined(__GLIBC__) && __GLIBC__ == 2) && \
++    (defined(__GLIBC_MINOR__) && __GLIBC_MINOR__ >= 2 && __GLIBC_MINOR__ < 4)
++	    /* work around glibc-2.2.5 bug, has been fixed at some
++	     * time in glibc-2.3.X */
+ 	    PL_reentrant_buffer->_crypt_struct_buffer->current_saltbits = 0;
++#endif
+ 	}
+ #endif
+     }

@@ -1,0 +1,564 @@
+diff --git a/Configure b/Configure
+index fdbbf20..000a4d6 100755
+--- a/Configure
++++ b/Configure
+@@ -4459,7 +4459,7 @@ else
+ fi
+ $rm -f try try.*
+ case "$gccversion" in
+-1*) cpp=`./loc gcc-cpp $cpp $pth` ;;
++1.*) cpp=`./loc gcc-cpp $cpp $pth` ;;
+ esac
+ case "$gccversion" in
+ '') gccosandvers='' ;;
+@@ -4499,7 +4499,7 @@ esac
+ # gcc 3.* complain about adding -Idirectories that they already know about,
+ # so we will take those off from locincpth.
+ case "$gccversion" in
+-3*)
++3.*)
+     echo "main(){}">try.c
+     for incdir in $locincpth; do
+        warn=`$cc $ccflags -I$incdir -c try.c 2>&1 | \
+@@ -4511,6 +4511,22 @@ case "$gccversion" in
+     $rm -f try try.*
+ esac
+ 
++# gcc 4.9 by default does some optimizations that break perl.
++# see ticket 121505.
++#
++# The -fwrapv disables those optimizations (and probably others,) so
++# for gcc 4.9 (and later, since the optimizations probably won't go
++# away), add -fwrapv unless the user requests -fno-wrapv, which
++# disables -fwrapv, or if the user requests -fsanitize=undefined,
++# which turns the overflows -fwrapv ignores into runtime errors.
++case "$gccversion" in
++4.[3-9].*|4.[1-9][0-9]*|[5-9].*|[1-9][0-9]*)
++    case "$ccflags" in
++    *-fno-wrapv*|*-fsanitize=undefined*|*-fwrapv*) ;;
++    *) ccflags="$ccflags -fwrapv" ;;
++    esac
++esac
++
+ : What should the include directory be ?
+ echo " "
+ $echo $n "Hmm...  $c"
+@@ -5073,13 +5089,13 @@ fi
+ case "$hint" in
+ default|recommended)
+ 	case "$gccversion" in
+-	1*) dflt="$dflt -fpcc-struct-return" ;;
++	1.*) dflt="$dflt -fpcc-struct-return" ;;
+ 	esac
+ 	case "$optimize:$DEBUGGING" in
+ 	*-g*:old) dflt="$dflt -DDEBUGGING";;
+ 	esac
+ 	case "$gccversion" in
+-	2*) if $test -d /etc/conf/kconfig.d &&
++	2.*) if $test -d /etc/conf/kconfig.d &&
+ 			$contains _POSIX_VERSION $usrinc/sys/unistd.h >/dev/null 2>&1
+ 		then
+ 			# Interactive Systems (ISC) POSIX mode.
+@@ -5088,7 +5104,7 @@ default|recommended)
+ 		;;
+ 	esac
+ 	case "$gccversion" in
+-	1*) ;;
++	1.*) ;;
+ 	2.[0-8]*) ;;
+ 	?*)	set strict-aliasing -fno-strict-aliasing
+ 		eval $checkccflag
+@@ -5190,7 +5206,7 @@ case "$cppflags" in
+ *)  cppflags="$cppflags $ccflags" ;;
+ esac
+ case "$gccversion" in
+-1*) cppflags="$cppflags -D__GNUC__"
++1.*) cppflags="$cppflags -D__GNUC__"
+ esac
+ case "$mips_type" in
+ '');;
+diff --git a/cpan/Time-Local/t/Local.t b/cpan/Time-Local/t/Local.t
+index 521cac0..0507a8d 100644
+--- a/cpan/Time-Local/t/Local.t
++++ b/cpan/Time-Local/t/Local.t
+@@ -95,7 +95,7 @@ for (@time, @neg_time) {
+ 
+         # Test timelocal()
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timelocal($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = localtime($time);
+@@ -111,7 +111,7 @@ for (@time, @neg_time) {
+ 
+         # Test timegm()
+         {
+-            my $year_in = $year < 70 ? $year + 1900 : $year;
++            my $year_in = $year + 1900;
+             my $time = timegm($sec,$min,$hour,$mday,$mon,$year_in);
+ 
+             my($s,$m,$h,$D,$M,$Y) = gmtime($time);
+@@ -129,7 +129,6 @@ for (@time, @neg_time) {
+ 
+ for (@bad_time) {
+     my($year, $mon, $mday, $hour, $min, $sec) = @$_;
+-    $year -= 1900;
+     $mon--;
+ 
+     eval { timegm($sec,$min,$hour,$mday,$mon,$year) };
+@@ -138,14 +137,14 @@ for (@bad_time) {
+ }
+ 
+ {
+-    is(timelocal(0,0,1,1,0,90) - timelocal(0,0,0,1,0,90), 3600,
++    is(timelocal(0,0,1,1,0,1990) - timelocal(0,0,0,1,0,1990), 3600,
+        'one hour difference between two calls to timelocal');
+ 
+-    is(timelocal(1,2,3,1,0,100) - timelocal(1,2,3,31,11,99), 24 * 3600,
++    is(timelocal(1,2,3,1,0,2000) - timelocal(1,2,3,31,11,1999), 24 * 3600,
+        'one day difference between two calls to timelocal');
+ 
+     # Diff beween Jan 1, 1980 and Mar 1, 1980 = (31 + 29 = 60 days)
+-    is(timegm(0,0,0, 1, 2, 80) - timegm(0,0,0, 1, 0, 80), 60 * 24 * 3600,
++    is(timegm(0,0,0, 1, 2, 1980) - timegm(0,0,0, 1, 0, 1980), 60 * 24 * 3600,
+        '60 day difference between two calls to timegm');
+ }
+ 
+diff --git a/ext/Errno/Errno_pm.PL b/ext/Errno/Errno_pm.PL
+index 439f254..a324604 100644
+--- a/ext/Errno/Errno_pm.PL
++++ b/ext/Errno/Errno_pm.PL
+@@ -242,20 +242,31 @@ sub write_errno_pm {
+     unless ($^O eq 'beos') {	# trust what we have / get later
+     # invoke CPP and read the output
+ 
++	my $inhibit_linemarkers = '';
++	if ($Config{gccversion} =~ /\A(\d+)\./ and $1 >= 5) {
++	    # GCC 5.0 interleaves expanded macros with line numbers breaking
++	    # each line into multiple lines. RT#123784
++	    $inhibit_linemarkers = ' -P';
++	}
++
+ 	if ($^O eq 'VMS') {
+-	    my $cpp = "$Config{cppstdin} $Config{cppflags} $Config{cppminus}";
++	    my $cpp = "$Config{cppstdin} $Config{cppflags}" .
++		$inhibit_linemarkers . " $Config{cppminus}";
+ 	    $cpp =~ s/sys\$input//i;
+ 	    open(CPPO,"$cpp  errno.c |") or
+ 		die "Cannot exec $Config{cppstdin}";
+ 	} elsif ($IsMSWin32 || $^O eq 'NetWare') {
+-	    open(CPPO,"$Config{cpprun} $Config{cppflags} errno.c |") or
+-		die "Cannot run '$Config{cpprun} $Config{cppflags} errno.c'";
++	    my $cpp = "$Config{cpprun} $Config{cppflags}" .
++		$inhibit_linemarkers;
++	    open(CPPO,"$cpp errno.c |") or
++		die "Cannot run '$cpp errno.c'";
+ 	} elsif ($IsSymbian) {
+-            my $cpp = "gcc -E -I$ENV{SDK}\\epoc32\\include\\libc -";
++            my $cpp = "gcc -E -I$ENV{SDK}\\epoc32\\include\\libc" .
++		$inhibit_linemarkers ." -";
+ 	    open(CPPO,"$cpp < errno.c |")
+ 		or die "Cannot exec $cpp";
+         } else {
+-	    my $cpp = default_cpp();
++	    my $cpp = default_cpp() . $inhibit_linemarkers;
+ 	    open(CPPO,"$cpp < errno.c |")
+ 		or die "Cannot exec $cpp";
+ 	}
+diff --git a/hints/linux.sh b/hints/linux.sh
+index 688c68d..c749f0f 100644
+--- a/hints/linux.sh
++++ b/hints/linux.sh
+@@ -39,7 +39,7 @@ i_libutil='undef'
+ # SuSE Linux can be used as cross-compilation host for Cray XT4 Catamount/Qk.
+ if test -d /opt/xt-pe
+ then
+-  case "`cc -V 2>&1`" in
++  case "`${cc:-cc} -V 2>&1`" in
+   *catamount*) . hints/catamount.sh; return ;;
+   esac
+ fi
+@@ -58,17 +58,10 @@ shift
+ libswanted="$*"
+ 
+ # Debian 4.0 puts ndbm in the -lgdbm_compat library.
+-libswanted="$libswanted gdbm_compat"
+-
+-# If you have glibc, then report the version for ./myconfig bug reporting.
+-# (Configure doesn't need to know the specific version since it just uses
+-# gcc to load the library for all tests.)
+-# We don't use __GLIBC__ and  __GLIBC_MINOR__ because they
+-# are insufficiently precise to distinguish things like
+-# libc-2.0.6 and libc-2.0.7.
+-if test -L /lib/libc.so.6; then
+-    libc=`ls -l /lib/libc.so.6 | awk '{print $NF}'`
+-    libc=/lib/$libc
++echo $libs
++if echo " $libswanted " | grep -q ' gdbm '; then
++    # Only add if gdbm is in libswanted.
++    libswanted="$libswanted gdbm_compat"
+ fi
+ 
+ # Configure may fail to find lstat() since it's a static/inline
+@@ -87,9 +80,12 @@ case "$usemymalloc" in
+ '') usemymalloc='n' ;;
+ esac
+ 
++uname_minus_m="`$run uname -m 2>/dev/null`"
++uname_minus_m="${uname_minus_m:-"$targetarch"}"
++
+ # Check if we're about to use Intel's ICC compiler
+ case "`${cc:-cc} -V 2>&1`" in
+-*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
++*"Intel(R) C"*" Compiler"*)
+     # record the version, formats:
+     # icc (ICC) 10.1 20080801
+     # icpc (ICC) 10.1 20080801
+@@ -100,7 +96,7 @@ case "`${cc:-cc} -V 2>&1`" in
+     # The -no-gcc flag is needed otherwise, icc pretends (poorly) to be gcc
+     ccflags="-we147 -mp -no-gcc $ccflags"
+     # Prevent relocation errors on 64bits arch
+-    case "`uname -m`" in
++    case "$uname_minus_m" in
+ 	*ia64*|*x86_64*)
+ 	    cccdlflags='-fPIC'
+ 	;;
+@@ -134,7 +130,7 @@ case "$optimize" in
+ # use -O2 by default ; -O3 doesn't seem to bring significant benefits with gcc
+ '')
+     optimize='-O2'
+-    case "`uname -m`" in
++    case "$uname_minus_m" in
+         ppc*)
+             # on ppc, it seems that gcc (at least gcc 3.3.2) isn't happy
+             # with -O2 ; so downgrade to -O1.
+@@ -169,12 +165,15 @@ esac
+ # plibpth to bypass this check.
+ if [ -x /usr/bin/gcc ] ; then
+     gcc=/usr/bin/gcc
++# clang also provides -print-search-dirs
++elif ${cc:-cc} --version 2>/dev/null | grep -q '^clang ' ; then
++    gcc=${cc:-cc}
+ else
+     gcc=gcc
+ fi
+ 
+ case "$plibpth" in
+-'') plibpth=`LANG=C LC_ALL=C $gcc -print-search-dirs | grep libraries |
++'') plibpth=`LANG=C LC_ALL=C $gcc $ccflags $ldflags -print-search-dirs | grep libraries |
+ 	cut -f2- -d= | tr ':' $trnl | grep -v 'gcc' | sed -e 's:/$::'`
+     set X $plibpth # Collapse all entries on one line
+     shift
+@@ -182,93 +181,60 @@ case "$plibpth" in
+     ;;
+ esac
+ 
+-# Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
+-# for this test.
+-cat >try.c <<'EOM'
+-/* Test for whether ELF binaries are produced */
+-#include <fcntl.h>
+-#include <stdlib.h>
+-#include <unistd.h>
+-main() {
+-	char buffer[4];
+-	int i=open("a.out",O_RDONLY);
+-	if(i==-1)
+-		exit(1); /* fail */
+-	if(read(i,&buffer[0],4)<4)
+-		exit(1); /* fail */
+-	if(buffer[0] != 127 || buffer[1] != 'E' ||
+-           buffer[2] != 'L' || buffer[3] != 'F')
+-		exit(1); /* fail */
+-	exit(0); /* succeed (yes, it's ELF) */
+-}
+-EOM
+-if ${cc:-gcc} try.c >/dev/null 2>&1 && $run ./a.out; then
+-    cat <<'EOM' >&4
+-
+-You appear to have ELF support.  I'll try to use it for dynamic loading.
+-If dynamic loading doesn't work, read hints/linux.sh for further information.
+-EOM
+-
+-else
+-    cat <<'EOM' >&4
+-
+-You don't have an ELF gcc.  I will use dld if possible.  If you are
+-using a version of DLD earlier than 3.2.6, or don't have it at all, you
+-should probably upgrade. If you are forced to use 3.2.4, you should
+-uncomment a couple of lines in hints/linux.sh and restart Configure so
+-that shared libraries will be disallowed.
++# For the musl libc, perl should #define _GNU_SOURCE.  Otherwise, some
++# available functions, like memem, won't be used.  See the discussion in
++# [perl #133760].  musl doesn't offer an easy way to identify it, but,
++# at least on alpine linux, the ldd --version output contains the
++# string 'musl.'
++case `ldd --version 2>&1` in
++    musl*)  ccflags="$ccflags -D_GNU_SOURCE" ;;
++        *) ;;
++esac
+ 
+-EOM
+-    lddlflags="-r $lddlflags"
+-    # These empty values are so that Configure doesn't put in the
+-    # Linux ELF values.
+-    ccdlflags=' '
+-    cccdlflags=' '
+-    ccflags="-DOVR_DBL_DIG=14 $ccflags"
+-    so='sa'
+-    dlext='o'
+-    nm_so_opt=' '
+-    ## If you are using DLD 3.2.4 which does not support shared libs,
+-    ## uncomment the next two lines:
+-    #ldflags="-static"
+-    #so='none'
+-
+-	# In addition, on some systems there is a problem with perl and NDBM
+-	# which causes AnyDBM and NDBM_File to lock up. This is evidenced
+-	# in the tests as AnyDBM just freezing.  Apparently, this only
+-	# happens on a.out systems, so we disable NDBM for all a.out linux
+-	# systems.  If someone can suggest a more robust test
+-	#  that would be appreciated.
+-	#
+-	# More info:
+-	# Date: Wed, 7 Feb 1996 03:21:04 +0900
+-	# From: Jeffrey Friedl <jfriedl@nff.ncl.omron.co.jp>
+-	#
+-	# I tried compiling with DBM support and sure enough things locked up
+-	# just as advertised. Checking into it, I found that the lockup was
+-	# during the call to dbm_open. Not *in* dbm_open -- but between the call
+-	# to and the jump into.
+-	#
+-	# To make a long story short, making sure that the *.a and *.sa pairs of
+-	#   /usr/lib/lib{m,db,gdbm}.{a,sa}
+-	# were perfectly in sync took care of it.
+-	#
+-	# This will generate a harmless Whoa There! message
+-	case "$d_dbm_open" in
+-	'')	cat <<'EOM' >&4
+-
+-Disabling ndbm.  This will generate a Whoa There message in Configure.
+-Read hints/linux.sh for further information.
+-EOM
+-		# You can override this with Configure -Dd_dbm_open
+-		d_dbm_open=undef
+-		;;
+-	esac
+-fi
++# libquadmath is sometimes installed as gcc internal library,
++# so contrary to our usual policy of *not* looking at gcc internal
++# directories we now *do* look at them, in case they contain
++# the quadmath library.
++# XXX This may apply to other gcc internal libraries, if such exist.
++# XXX This could be at Configure level, but then the $gcc is messy.
++case "$usequadmath" in
++"$define")
++  for d in `LANG=C LC_ALL=C $gcc $ccflags $ldflags -print-search-dirs | grep libraries | cut -f2- -d= | tr ':' $trnl | grep 'gcc' | sed -e 's:/$::'`
++  do
++    case `ls $d/*libquadmath*$so* 2>/dev/null` in
++    $d/*libquadmath*$so*) xlibpth="$xlibpth $d" ;;
++    esac
++  done
++  ;;
++esac
+ 
+-rm -f try.c a.out
++case "$libc" in
++'')
++# If you have glibc, then report the version for ./myconfig bug reporting.
++# (Configure doesn't need to know the specific version since it just uses
++# gcc to load the library for all tests.)
++# We don't use __GLIBC__ and  __GLIBC_MINOR__ because they
++# are insufficiently precise to distinguish things like
++# libc-2.0.6 and libc-2.0.7.
++    for p in $plibpth
++    do
++        for trylib in libc.so.6 libc.so
++        do
++            if $test -e $p/$trylib; then
++                libc=`ls -l $p/$trylib | awk '{print $NF}'`
++                if $test "X$libc" != X; then
++                    break
++                fi
++            fi
++        done
++        if $test "X$libc" != X; then
++            break
++        fi
++    done
++    ;;
++esac
+ 
+-if /bin/sh -c exit; then
++if ${sh:-/bin/sh} -c exit; then
+   echo ''
+   echo 'You appear to have a working bash.  Good.'
+ else
+@@ -335,7 +301,7 @@ fi
+ #'osfmach3ppc') ccdlflags='-Wl,-E' ;;
+ #esac
+ 
+-case "`uname -m`" in
++case "$uname_minus_m" in
+ sparc*)
+ 	case "$cccdlflags" in
+ 	*-fpic*) cccdlflags="`echo $cccdlflags|sed 's/-fpic/-fPIC/'`" ;;
+@@ -350,17 +316,55 @@ esac
+ # version of -lgdbm which is a bad idea. So if we have 'nm'
+ # make sure it can read the file
+ # NI-S 2003/08/07
+-if [ -r /usr/lib/libndbm.so  -a  -x /usr/bin/nm ] ; then
+-   if /usr/bin/nm /usr/lib/libndbm.so >/dev/null 2>&1 ; then
+-    echo 'Your shared -lndbm seems to be a real library.'
+-   else
+-    echo 'Your shared -lndbm is not a real library.'
+-    set `echo X "$libswanted "| sed -e 's/ ndbm / /'`
+-    shift
+-    libswanted="$*"
+-   fi
+-fi
++case "$nm" in
++    '') ;;
++    *)
++    for p in $plibpth
++    do
++        if $test -r $p/libndbm.so; then
++            if $nm $p/libndbm.so >/dev/null 2>&1 ; then
++                echo 'Your shared -lndbm seems to be a real library.'
++                _libndbm_real=1
++                break
++            fi
++        fi
++    done
++    if $test "X$_libndbm_real" = X; then
++        echo 'Your shared -lndbm is not a real library.'
++        set `echo X "$libswanted "| sed -e 's/ ndbm / /'`
++        shift
++        libswanted="$*"
++    fi
++    ;;
++esac
+ 
++# Linux on Synology.
++if [ -f /etc/synoinfo.conf -a -d /usr/syno ]; then
++    # Tested on Synology DS213 and DS413
++    #  OS version info in /etc.defaults/VERSION
++    #  http://forum.synology.com/wiki/index.php/What_kind_of_CPU_does_my_NAS_have
++    # Synology DS213 running DSM 4.3-3810-0 (2013-11-06)
++    #  CPU model Marvell Kirkwood mv6282 ARMv5te
++    #  Linux 2.6.32.12 #3810 Wed Nov 6 05:13:41 CST 2013 armv5tel GNU/Linux
++    # Synology DS413 running DSM 4.3-3810-0 (2013-11-06)
++    #  CPU model Freescale QorIQ P1022 ppc (e500v2)
++    #  linux 2.6.32.12 #3810 ppc GNU/Linux
++    # All development stuff installed with ipkg is in /opt
++    if [ "$LANG" = "" -o "$LANG" = "C" ]; then
++	echo 'Your LANG is safe'
++    else
++	echo 'Please set $LANG to "C". All other $LANG settings will cause havoc' >&4
++	LANG=C
++    fi
++    echo 'Setting up to use /opt/*' >&4
++    locincpth="/opt/include $locincpth"
++    libpth="/opt/lib $libpth"
++    libspth="/opt/lib $libspth"
++    loclibpth="/opt/lib $loclibpth"
++    # POSIX will not link without the pthread lib
++    libswanted="$libswanted pthread"
++    echo "$libswanted" >&4
++fi
+ 
+ # This script UU/usethreads.cbu will get 'called-back' by Configure
+ # after it has prompted the user for whether to use threads.
+@@ -414,16 +418,6 @@ $define|true|[yY]*)
+     ;;
+ esac
+ 
+-# If we are using g++ we must use nm and force ourselves to use
+-# the /usr/lib/libc.a (resetting the libc below to an empty string
+-# makes Configure to look for the right one) because the symbol
+-# scanning tricks of Configure will crash and burn horribly.
+-case "$cc" in
+-*g++*) usenm=true
+-       libc=''
+-       ;;
+-esac
+-
+ # If using g++, the Configure scan for dlopen() and (especially)
+ # dlerror() might fail, easier just to forcibly hint them in.
+ case "$cc" in
+@@ -447,7 +441,7 @@ then
+        DBLIB="$DBDIR/libdb.so"
+        if [ -f $DBLIB ]
+        then
+-         if nm -u $DBLIB | grep pthread >/dev/null
++         if ${nm:-nm} -u $DBLIB 2>/dev/null | grep pthread >/dev/null
+          then
+            if ldd $DBLIB | grep pthread >/dev/null
+            then
+diff --git a/lib/h2ph.t b/lib/h2ph.t
+index 2b58f6a..64d9dc0 100644
+--- a/lib/h2ph.t
++++ b/lib/h2ph.t
+@@ -48,7 +48,7 @@ $result = runperl( progfile => '_h2ph_pre.ph',
+                    stderr => 1 );
+ like( $result, qr/syntax OK$/, "preamble compiles");
+ 
+-$result = runperl( switches => ["-w"],
++$result = runperl( switches => ['-I.', "-w"],
+                    stderr => 1,
+                    prog => <<'PROG' );
+ $SIG{__WARN__} = sub { die $_[0] }; require q(lib/h2ph.pht);
+diff --git a/pp.c b/pp.c
+index 598a429..72bc668 100644
+--- a/pp.c
++++ b/pp.c
+@@ -3426,8 +3426,12 @@ PP(pp_crypt)
+ #if defined(__GLIBC__) || defined(__EMX__)
+ 	if (PL_reentrant_buffer->_crypt_struct_buffer) {
+ 	    PL_reentrant_buffer->_crypt_struct_buffer->initialized = 0;
+-	    /* work around glibc-2.2.5 bug */
++#if (defined(__GLIBC__) && __GLIBC__ == 2) && \
++    (defined(__GLIBC_MINOR__) && __GLIBC_MINOR__ >= 2 && __GLIBC_MINOR__ < 4)
++	    /* work around glibc-2.2.5 bug, has been fixed at some
++	     * time in glibc-2.3.X */
+ 	    PL_reentrant_buffer->_crypt_struct_buffer->current_saltbits = 0;
++#endif
+ 	}
+ #endif
+     }
+diff --git a/utils/h2ph.PL b/utils/h2ph.PL
+index a2d737b..9484d81 100644
+--- a/utils/h2ph.PL
++++ b/utils/h2ph.PL
+@@ -788,6 +788,11 @@ sub build_preamble_if_necessary
+ 
+     open  PREAMBLE, ">$preamble" or die "Cannot open $preamble:  $!";
+ 	print PREAMBLE "# This file was created by h2ph version $VERSION\n";
++        # Prevent non-portable hex constants from warning.
++        #
++        # We still produce an overflow warning if we can't represent
++        # a hex constant as an integer.
++        print PREAMBLE "no warnings qw(portable);\n";
+ 
+ 	foreach (sort keys %define) {
+ 	    if ($opt_D) {
+@@ -814,6 +819,18 @@ DEFINE
+ 		# integer:
+ 		print PREAMBLE
+ 		    "unless (defined &$_) { sub $_() { $1 } }\n\n";
++            } elsif ($define{$_} =~ /^([+-]?0x[\da-f]+)U?L{0,2}$/i) {
++                # hex integer
++                # Special cased, since perl warns on hex integers
++                # that can't be represented in a UV.
++                #
++                # This way we get the warning at time of use, so the user
++                # only gets the warning if they happen to use this
++                # platform-specific definition.
++                my $code = $1;
++                $code = "hex('$code')" if length $code > 10;
++                print PREAMBLE
++                    "unless (defined &$_) { sub $_() { $code } }\n\n";
+ 	    } elsif ($define{$_} =~ /^\w+$/) {
+ 		my $def = $define{$_};
+ 		if ($isatype{$def}) {
