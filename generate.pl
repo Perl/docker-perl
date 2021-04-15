@@ -143,13 +143,8 @@ for my $release (@{$config->{releases}}) {
     $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
 
     $release->{extra_flags}    ||= '';
-    $release->{debian_release} ||= ['buster'];
 
     $release->{image} = $build =~ /main/ ? 'buildpack-deps' : 'debian';
-
-    if (ref $release->{debian_release} ne 'ARRAY') {
-      $release->{debian_release} = [$release->{debian_release}];
-    }
 
     for my $debian_release (@{$release->{debian_release}}) {
 
@@ -179,14 +174,20 @@ for my $release (@{$config->{releases}}) {
         print $fh $patch;
       }
 
-      if (defined $release->{test_parallel} && $release->{test_parallel} eq "no") {
+      $release->{run_tests} //= "parallel";
+      if ($release->{run_tests} eq "serial") {
         $output =~ s/\{\{test\}\}/make test_harness/;
       }
-      elsif (!defined $release->{test_parallel} || $release->{test_parallel} eq "yes") {
+      elsif ($release->{run_tests} eq "parallel") {
         $output =~ s/\{\{test\}\}/TEST_JOBS=\$(nproc) make test_harness/;
       }
+      elsif ($release->{run_tests} eq "no") {
+        # https://metacpan.org/pod/Devel::PatchPerl#CAVEAT
+        $output =~ s/\{\{test\}\}/LD_LIBRARY_PATH=. .\/perl -Ilib -de0/;
+        # https://metacpan.org/pod/distribution/perl/INSTALL#Building-a-shared-Perl-library
+      }
       else {
-        die "test_parallel was provided for $release->{version} but is invalid; should be 'yes' or 'no'\n";
+        die "run_tests was provided for $release->{version} but is invalid; should be 'parallel', 'serial', or 'no'\n";
       }
 
       open my $dockerfile, ">", "$dir/Dockerfile" or die "Couldn't open $dir/Dockerfile for writing";
@@ -239,8 +240,7 @@ The Docker image tag which this Perl would build on, common to both the
 L<https://hub.docker.com/_/buildpack-deps|buildpack-deps> and
 L<https://hub.docker.com/_/debian|debian> Docker images.
 
-This can be a single tag, or a list of tags to generate multiple
-Dockerfiles for different Debian versions:
+This should be a list of tags for different Debian versions:
 
     - version: 5.30.0
       type:    xz
@@ -248,8 +248,7 @@ Dockerfiles for different Debian versions:
         - stretch
         - buster
 
-Defaults: C<buster> for C<main> builds, C<buster-slim> for C<slim>
-builds.
+C<-slim> will be appended to this value for C<slim> builds.
 
 =item extra_flags
 
@@ -258,11 +257,13 @@ necessary for 5.18.x so that it can get the C<-fwrapv> flag.
 
 Default: C<"">
 
-=item test_parallel
+=item run_tests
 
-This can be either 'no', 'yes', or unspecified (equivalent to 'yes').
+This can be 'parallel' (default), 'serial', or 'no'.
+
 Added due to dist/IO/t/io_unix.t failing when TEST_JOBS > 1, but should
-only be used in case of a documented issue.
+only be used in case of a documented issue or old release (see
+L<https://metacpan.org/pod/Devel::PatchPerl#CAVEAT|Devel::PatchPerl's CAVEAT>).
 
 Default: C<yes>
 
