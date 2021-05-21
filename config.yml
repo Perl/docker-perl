@@ -8,13 +8,6 @@ options:
   threaded: "-Dusethreads"
 
 releases:
-  - version: 5.28.3
-    sha256:  77dc1ddf541643af14d585867d3d0741cce45d0dbe8f1467024e63165d9e2fc5
-    type:    xz
-    debian_release:
-      - stretch
-      - buster
-
   - version: 5.30.3
     sha256:  6967595f2e3f3a94544c35152f9a25e0cb8ea24ae45f4bf1882f2e33f4a400f4
     type:    xz
@@ -27,4 +20,10 @@ releases:
     type:    xz
     debian_release:
       - stretch
+      - buster
+
+  - version: 5.34.0
+    sha256:  82c2e5e5c71b0e10487a80d79140469ab1f8056349ca8545140a224dbbed7ded
+    type:    xz
+    debian_release:
       - buster
