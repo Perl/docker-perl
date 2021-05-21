@@ -98,3 +98,28 @@ $config = do {
 };
 
 release $_, $config->{builds}, 1 for reverse @{$config->{releases}};
+
+=pod
+
+=head1 NAME
+
+library.pl - generate YAML for library/perl manifest on docker-library
+
+=head1 SYNOPSIS
+
+    cd /path/to/docker-perl
+    ./library.pl [--eol]
+
+=head1 DESCRIPTION
+
+library.pl is a helper script to generate a suitable manifest for
+updating C<library/perl> on
+L<docker-library/official-images|https://github.com/docker-library/official-images>,
+which is the reference for producing the
+L<official Docker Perl images|https://hub.docker.com/_/perl>.
+
+This script optionally takes an C<--eol> option, for including entries
+corresponding to unsupported Perl versions that require a rebuild on the
+Docker Hub as needed (e.g. for updating base image dependencies.)
+
+=cut
