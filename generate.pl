@@ -237,8 +237,8 @@ The SHA-256 of the tarball for that release.
 =item debian_release
 
 The Docker image tag which this Perl would build on, common to both the
-L<https://hub.docker.com/_/buildpack-deps|buildpack-deps> and
-L<https://hub.docker.com/_/debian|debian> Docker images.
+L<buildpack-deps|https://hub.docker.com/_/buildpack-deps> and
+L<debian|https://hub.docker.com/_/debian> Docker images.
 
 This should be a list of tags for different Debian versions:
 
@@ -263,7 +263,7 @@ This can be 'parallel' (default), 'serial', or 'no'.
 
 Added due to dist/IO/t/io_unix.t failing when TEST_JOBS > 1, but should
 only be used in case of a documented issue or old release (see
-L<https://metacpan.org/pod/Devel::PatchPerl#CAVEAT|Devel::PatchPerl's CAVEAT>).
+L<Devel::PatchPerl's CAVEAT|https://metacpan.org/pod/Devel::PatchPerl#CAVEAT>).
 
 Default: C<yes>
 
