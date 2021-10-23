@@ -12,18 +12,19 @@ releases:
     sha256:  6967595f2e3f3a94544c35152f9a25e0cb8ea24ae45f4bf1882f2e33f4a400f4
     type:    xz
     debian_release:
-      - stretch
       - buster
+      - bullseye
 
   - version: 5.32.1
     sha256:  57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309
     type:    xz
     debian_release:
-      - stretch
       - buster
+      - bullseye
 
   - version: 5.34.0
     sha256:  82c2e5e5c71b0e10487a80d79140469ab1f8056349ca8545140a224dbbed7ded
     type:    xz
     debian_release:
       - buster
+      - bullseye

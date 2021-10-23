@@ -245,7 +245,7 @@ This should be a list of tags for different Debian versions:
     - version: 5.30.0
       type:    xz
       debian_release:
-        - stretch
+        - bullseye
         - buster
 
 C<-slim> will be appended to this value for C<slim> builds.
