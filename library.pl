@@ -7,8 +7,8 @@ use YAML::XS;
 my %arches = (
 
   # https://github.com/docker-library/official-images/blob/master/library/debian
-  buster  => 'amd64, arm32v7, arm64v8, i386, ppc64le, s390x',
-  stretch => 'amd64, arm32v7, arm64v8, i386',
+  bullseye => 'amd64, arm32v5, arm32v7, arm64v8, i386, mips64le, ppc64le, s390x',
+  buster => 'amd64, arm32v5, arm32v7, arm64v8, i386, mips64le, ppc64le, s390x',
 );
 
 print <<"END_HEADER";
