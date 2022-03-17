@@ -22,8 +22,8 @@ releases:
       - buster
       - bullseye
 
-  - version: 5.34.0
-    sha256:  82c2e5e5c71b0e10487a80d79140469ab1f8056349ca8545140a224dbbed7ded
+  - version: 5.34.1
+    sha256:  6d52cf833ff1af27bb5e986870a2c30cec73c044b41e3458cd991f94374039f7
     type:    xz
     debian_release:
       - buster
