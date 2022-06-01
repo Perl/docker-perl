@@ -84,9 +84,9 @@ my %builds;
 
 # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
 my %cpanm = (
-  name   => "App-cpanminus-1.7044",
-  url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7044.tar.gz",
-  sha256 => "9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3",
+  name   => "App-cpanminus-1.7046",
+  url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz",
+  sha256 => "3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862",
 );
 
 die_with_sample unless defined $config->{releases};
