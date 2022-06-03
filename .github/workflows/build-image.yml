@@ -48,8 +48,13 @@ jobs:
           img="perl:${dir//,/-}"
           docker image inspect --format '{{.Created}}' "$img"
           docker image inspect --format '{{.Metadata.LastTagTime}}' "$img"
-      - name: Run tests
+      - name: Run tests from docker-library/official-images
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           ./official-images/test/run.sh "$img"
+      - name: Run cpanm install test
+        run: |
+          dir='${{ matrix.directory }}'
+          img="perl:${dir//,/-}"
+          docker run "$img" cpanm -v Mojolicious
