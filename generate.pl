@@ -61,7 +61,7 @@ EOF
 chomp $docker_slim_run_install;
 
 my $docker_slim_run_purge = <<'EOF';
-savedPackages="make netbase" \
+savedPackages="ca-certificates curl make netbase" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
@@ -279,6 +279,8 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 
 COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
+
+ENV PERL_CPANM_OPT="--from https://www.cpan.org"
 
 RUN {{docker_slim_run_install}} \
     && curl -SL {{url}} -o perl-{{version}}.tar.{{type}} \
