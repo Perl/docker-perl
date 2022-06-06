@@ -25,6 +25,8 @@ RUN apt-get update \
        # procps \
        # zlib1g-dev \
        xz-utils \
+       lib32z1-dev \
+       libssl-dev \
     && curl -SL https://www.cpan.org/src/5.0/perl-5.36.0.tar.xz -o perl-5.36.0.tar.xz \
     && echo '0f386dccbee8e26286404b2cca144e1005be65477979beb9b1ba272d4819bcf0 *perl-5.36.0.tar.xz' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.36.0.tar.xz -C /usr/src/perl \
@@ -41,7 +43,8 @@ RUN apt-get update \
     && curl -LO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz \
     && echo '3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862 *App-cpanminus-1.7046.tar.gz' | sha256sum -c - \
     && tar -xzf App-cpanminus-1.7046.tar.gz && cd App-cpanminus-1.7046 && perl bin/cpanm . && cd /root \
-    && savedPackages="make netbase" \
+    && cpanm IO::Socket::SSL \
+    && savedPackages="ca-certificates make netbase lib32z1-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
