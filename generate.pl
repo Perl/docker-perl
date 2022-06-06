@@ -56,12 +56,14 @@ apt-get update \
        patch \
        # procps \
        # zlib1g-dev \
-       xz-utils
+       xz-utils \
+       lib32z1-dev \
+       libssl-dev
 EOF
 chomp $docker_slim_run_install;
 
 my $docker_slim_run_purge = <<'EOF';
-savedPackages="make netbase" \
+savedPackages="ca-certificates make netbase lib32z1-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
@@ -297,6 +299,7 @@ RUN {{docker_slim_run_install}} \
     && curl -LO {{cpanm_dist_url}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum -c - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
+    && cpanm IO::Socket::SSL \
     && {{docker_slim_run_purge}} \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
 
