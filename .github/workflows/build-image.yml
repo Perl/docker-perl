@@ -53,3 +53,4 @@ jobs:
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           ./official-images/test/run.sh "$img"
+          docker run "$img" perl -MHTTP::Tiny -E 'if (HTTP::Tiny->new->get("https://github.com")->{status} == 200) { exit 0 } exit 1'
