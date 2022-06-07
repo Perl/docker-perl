@@ -55,15 +55,14 @@ apt-get update \
        netbase \
        patch \
        # procps \
-       # zlib1g-dev \
+       zlib1g-dev \
        xz-utils \
-       lib32z1-dev \
        libssl-dev
 EOF
 chomp $docker_slim_run_install;
 
 my $docker_slim_run_purge = <<'EOF';
-savedPackages="ca-certificates make netbase lib32z1-dev libssl-dev" \
+savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
