@@ -300,6 +300,7 @@ RUN {{docker_slim_run_install}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum -c - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
     && cpanm IO::Socket::SSL \
+    && cd /usr/local/bin && curl -LO https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm && chmod +x cpm \
     && {{docker_slim_run_purge}} \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
 
