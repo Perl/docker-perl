@@ -23,9 +23,8 @@ RUN apt-get update \
        netbase \
        patch \
        # procps \
-       # zlib1g-dev \
+       zlib1g-dev \
        xz-utils \
-       lib32z1-dev \
        libssl-dev \
     && curl -SL https://www.cpan.org/src/5.0/perl-5.34.1.tar.xz -o perl-5.34.1.tar.xz \
     && echo '6d52cf833ff1af27bb5e986870a2c30cec73c044b41e3458cd991f94374039f7 *perl-5.34.1.tar.xz' | sha256sum -c - \
@@ -44,7 +43,8 @@ RUN apt-get update \
     && echo '3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862 *App-cpanminus-1.7046.tar.gz' | sha256sum -c - \
     && tar -xzf App-cpanminus-1.7046.tar.gz && cd App-cpanminus-1.7046 && perl bin/cpanm . && cd /root \
     && cpanm IO::Socket::SSL \
-    && savedPackages="ca-certificates make netbase lib32z1-dev libssl-dev" \
+    && cd /usr/local/bin && curl -LO https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm && chmod +x cpm \
+    && savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
