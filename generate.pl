@@ -65,8 +65,7 @@ my $docker_slim_run_purge = <<'EOF';
 savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -fr /var/cache/apt/* /var/lib/apt/lists/*
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 EOF
 chomp $docker_slim_run_purge;
 
@@ -88,6 +87,13 @@ my %cpanm = (
   name   => "App-cpanminus-1.7046",
   url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz",
   sha256 => "3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862",
+);
+
+# sha256 taken from http://cdn-fastly.deb.debian.org/debian/pool/main/t/tini/tini_0.18.0-1.dsc
+my %tini = (
+  name   => "tini-0.18.0",
+  url    => "https://github.com/krallin/tini/archive/v0.18.0.tar.gz",
+  sha256 => "1097675352d6317b547e73f9dc7c6839fd0bb0d96dafc2e5c95506bb324049a2",
 );
 
 die_with_sample unless defined $config->{releases};
@@ -142,6 +148,7 @@ for my $release (@{$config->{releases}}) {
   for my $build (keys %builds) {
     $release->{url}             = $url;
     $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
+    $release->{"tini_dist_$_"}  = $tini{$_} for keys %tini;
 
     $release->{extra_flags}    ||= '';
 
@@ -151,7 +158,9 @@ for my $release (@{$config->{releases}}) {
 
       my $output = $template;
       $output =~ s/\{\{$_\}\}/$release->{$_}/mg
-        for (qw(version pause extra_flags sha256 type url image cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
+        for (
+        qw(version pause extra_flags sha256 type url image cpanm_dist_name cpanm_dist_url cpanm_dist_sha256 tini_dist_name tini_dist_url tini_dist_sha256)
+        );
       $output =~ s/\{\{args\}\}/$builds{$build}/mg;
 
       if ($build =~ /slim/) {
@@ -295,14 +304,26 @@ RUN {{docker_slim_run_install}} \
     && {{test}} \
     && make install \
     && cd /usr/src \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends cmake \
+    && curl -L {{tini_dist_url}} -o {{tini_dist_name}}.tar.gz \
+    && echo '{{tini_dist_sha256}} *{{tini_dist_name}}.tar.gz' | sha256sum -c - \
+    && tar -xzf {{tini_dist_name}}.tar.gz && cd {{tini_dist_name}} \
+    && CFLAGS="-DPR_SET_CHILD_SUBREAPER=36 -DPR_GET_CHILD_SUBREAPER=37" \
+    && cmake . && make && make install \
+    && cd /usr/src \
     && curl -LO {{cpanm_dist_url}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum -c - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
     && cpanm IO::Socket::SSL \
     && cd /usr/local/bin && curl -LO https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm && chmod +x cpm \
     && {{docker_slim_run_purge}} \
+    && apt-get purge -y --auto-remove cmake \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
+    && rm -fr /usr/src/{{tini_dist_name}}* \
     && rm -fr ./cpanm /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/*
 
 WORKDIR /
 
+ENTRYPOINT ["tini","--"]
 CMD ["perl{{version}}","-de0"]
