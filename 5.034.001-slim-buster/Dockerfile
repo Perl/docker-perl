@@ -26,8 +26,8 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.34.1.tar.xz -o perl-5.34.1.tar.xz \
-    && echo '6d52cf833ff1af27bb5e986870a2c30cec73c044b41e3458cd991f94374039f7 *perl-5.34.1.tar.xz' | sha256sum -c - \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.34.1.tar.xz -o perl-5.34.1.tar.xz \
+    && echo '6d52cf833ff1af27bb5e986870a2c30cec73c044b41e3458cd991f94374039f7 *perl-5.34.1.tar.xz' | sha256sum --strict --check - \
     && tar --strip-components=1 -xaf perl-5.34.1.tar.xz -C /usr/src/perl \
     && rm perl-5.34.1.tar.xz \
     && cat *.patch | patch -p1 \
@@ -39,11 +39,15 @@ RUN apt-get update \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
     && cd /usr/src \
-    && curl -LO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz \
-    && echo '3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862 *App-cpanminus-1.7046.tar.gz' | sha256sum -c - \
+    && curl -fLO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz \
+    && echo '3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862 *App-cpanminus-1.7046.tar.gz' | sha256sum --strict --check - \
     && tar -xzf App-cpanminus-1.7046.tar.gz && cd App-cpanminus-1.7046 && perl bin/cpanm . && cd /root \
     && cpanm IO::Socket::SSL \
-    && cd /usr/local/bin && curl -LO https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm && chmod +x cpm \
+    && cd /usr/local/bin \
+    && curl -fLO https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm \
+    # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
+    && echo '7dee2176a450a8be3a6b9b91dac603a0c3a7e807042626d3fe6c93d843f75610 *cpm' | sha256sum --strict --check - \
+    && chmod +x cpm \
     && savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
