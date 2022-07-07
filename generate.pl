@@ -90,6 +90,12 @@ my %cpanm = (
   sha256 => "3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862",
 );
 
+# sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
+my %cpm = (
+  url    => "https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm",
+  sha256 => "7dee2176a450a8be3a6b9b91dac603a0c3a7e807042626d3fe6c93d843f75610",
+);
+
 die_with_sample unless defined $config->{releases};
 die_with_sample unless ref $config->{releases} eq "ARRAY";
 
@@ -142,6 +148,7 @@ for my $release (@{$config->{releases}}) {
   for my $build (keys %builds) {
     $release->{url}             = $url;
     $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
+    $release->{"cpm_dist_$_"}   = $cpm{$_} for keys %cpm;
 
     $release->{extra_flags}    ||= '';
 
@@ -151,7 +158,7 @@ for my $release (@{$config->{releases}}) {
 
       my $output = $template;
       $output =~ s/\{\{$_\}\}/$release->{$_}/mg
-        for (qw(version pause extra_flags sha256 type url image cpanm_dist_name cpanm_dist_url cpanm_dist_sha256));
+        for (qw(version pause extra_flags sha256 type url image cpanm_dist_name cpanm_dist_url cpanm_dist_sha256 cpm_dist_url cpm_dist_sha256));
       $output =~ s/\{\{args\}\}/$builds{$build}/mg;
 
       if ($build =~ /slim/) {
@@ -299,9 +306,9 @@ RUN {{docker_slim_run_install}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
     && cpanm IO::Socket::SSL \
-    && curl -fL https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm -o /usr/local/bin/cpm \
+    && curl -fL {{cpm_dist_url}} -o /usr/local/bin/cpm \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
-    && echo '7dee2176a450a8be3a6b9b91dac603a0c3a7e807042626d3fe6c93d843f75610 */usr/local/bin/cpm' | sha256sum --strict --check - \
+    && echo '{{cpm_dist_sha256}} */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
     && {{docker_slim_run_purge}} \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
