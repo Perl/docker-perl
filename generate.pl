@@ -130,7 +130,7 @@ for my $release (@{$config->{releases}}) {
     qx{rm -fR $dir};
     mkdir $dir or die "Couldn't create $dir";
     qx{
-      tar -C "downloads" -axf $dir.tar.$release->{type} &&\
+      tar -C "downloads" -xf $dir.tar.$release->{type} &&\
       cd $dir &&\
       find . -exec chmod u+w {} + &&\
       git init &&\
