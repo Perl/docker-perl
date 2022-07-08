@@ -48,9 +48,19 @@ jobs:
           img="perl:${dir//,/-}"
           docker image inspect --format '{{.Created}}' "$img"
           docker image inspect --format '{{.Metadata.LastTagTime}}' "$img"
-      - name: Run tests
+      - name: Run tests from docker-library/official-images
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           ./official-images/test/run.sh "$img"
           docker run "$img" perl -MHTTP::Tiny -E 'if (HTTP::Tiny->new->get("https://github.com")->{status} == 200) { exit 0 } exit 1'
+      - name: Run cpanm install test
+        run: |
+          dir='${{ matrix.directory }}'
+          img="perl:${dir//,/-}"
+          docker run "$img" cpanm -v Mojolicious
+      - name: Run cpm install test
+        run: |
+          dir='${{ matrix.directory }}'
+          img="perl:${dir//,/-}"
+          docker run "$img" cpm install -v Mojolicious
