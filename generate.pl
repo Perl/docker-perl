@@ -177,9 +177,13 @@ for my $release (@{$config->{releases}}) {
       mkdir $dir unless -d $dir;
 
       # Set up the generated DevelPatchPerl.patch
-      {
+      if ($patch) {
         open my $fh, ">", "$dir/DevelPatchPerl.patch";
         print $fh $patch;
+        $output =~ s!\{\{docker_copy_perl_patch\}\}!COPY *.patch /usr/src/perl/!mg;
+      }
+      else {
+        $output =~ s!\{\{docker_copy_perl_patch\}\}!# No DevelPatchPerl.patch generated!mg;
       }
 
       $release->{run_tests} //= "parallel";
@@ -285,7 +289,7 @@ __DATA__
 FROM {{image}}:{{tag}}
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
-COPY *.patch /usr/src/perl/
+{{docker_copy_perl_patch}}
 WORKDIR /usr/src/perl
 
 RUN {{docker_slim_run_install}} \
