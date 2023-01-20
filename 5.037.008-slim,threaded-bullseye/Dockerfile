@@ -1,19 +1,40 @@
-FROM buildpack-deps:buster
+FROM debian:bullseye-slim
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
-RUN true \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.32.1.tar.xz -o perl-5.32.1.tar.xz \
-    && echo '57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309 *perl-5.32.1.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.32.1.tar.xz -C /usr/src/perl \
-    && rm perl-5.32.1.tar.xz \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       bzip2 \
+       ca-certificates \
+       # cpio \
+       curl \
+       dpkg-dev \
+       # file \
+       gcc \
+       # g++ \
+       # libbz2-dev \
+       # libdb-dev \
+       libc6-dev \
+       # libgdbm-dev \
+       # liblzma-dev \
+       make \
+       netbase \
+       patch \
+       # procps \
+       zlib1g-dev \
+       xz-utils \
+       libssl-dev \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.8.tar.xz -o perl-5.37.8.tar.xz \
+    && echo 'eca6396a4b1aa7a38ef467ce54ed897cc84ba948fad0f90aeb210e57b04daf3c *perl-5.37.8.tar.xz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.37.8.tar.xz -C /usr/src/perl \
+    && rm perl-5.37.8.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local  -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -26,10 +47,14 @@ RUN true \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo '7dee2176a450a8be3a6b9b91dac603a0c3a7e807042626d3fe6c93d843f75610 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && true \
+    && savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
+    && apt-mark auto '.*' > /dev/null \
+    && apt-mark manual $savedPackages \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7046* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /
 
-CMD ["perl5.32.1","-de0"]
+CMD ["perl5.37.8","-de0"]
