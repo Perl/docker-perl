@@ -5,15 +5,15 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.32.1.tar.xz -o perl-5.32.1.tar.xz \
-    && echo '57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309 *perl-5.32.1.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.32.1.tar.xz -C /usr/src/perl \
-    && rm perl-5.32.1.tar.xz \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.8.tar.xz -o perl-5.37.8.tar.xz \
+    && echo 'eca6396a4b1aa7a38ef467ce54ed897cc84ba948fad0f90aeb210e57b04daf3c *perl-5.37.8.tar.xz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.37.8.tar.xz -C /usr/src/perl \
+    && rm perl-5.37.8.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local  -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -32,4 +32,4 @@ RUN true \
 
 WORKDIR /
 
-CMD ["perl5.32.1","-de0"]
+CMD ["perl5.37.8","-de0"]
