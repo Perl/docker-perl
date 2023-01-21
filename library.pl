@@ -2,6 +2,7 @@
 use 5.014;
 use strict;
 use warnings;
+use Perl::Version;
 use YAML::XS;
 
 my %arches = (
@@ -21,7 +22,7 @@ END_HEADER
 
 sub suffix {
   my $suffix = shift;
-  map { $_ eq 'latest' ? $suffix : $_ . '-' . $suffix } @_;
+  map { $_ =~ /(latest|devel)/ ? $suffix : $_ . '-' . $suffix } @_;
 }
 
 sub entry {
@@ -37,8 +38,13 @@ sub entry {
     push @versionAliases, join '.', @version[0 .. $i];
   }
 
-  push @versionAliases, 'latest';
-
+  if (Perl::Version->new($version)->version % 2) {
+    push @versionAliases, 'latest-blead', 'devel'
+  }
+  else {
+    push @versionAliases, 'latest';
+  }
+ 
   (my $buildSuffix = $build) =~ s/^main,//;
   $buildSuffix =~ s/,/-/g;
   my @buildAliases = ($build eq 'main' ? @versionAliases : suffix $buildSuffix, @versionAliases);
