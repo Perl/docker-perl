@@ -22,7 +22,7 @@ END_HEADER
 
 sub suffix {
   my $suffix = shift;
-  map { $_ =~ /(latest|devel)/ ? $suffix : $_ . '-' . $suffix } @_;
+  map { $_ eq 'latest' ? $suffix : $_ . '-' . $suffix } @_;
 }
 
 sub entry {
@@ -39,7 +39,7 @@ sub entry {
   }
 
   if (Perl::Version->new($version)->version % 2) {
-    push @versionAliases, 'latest-blead', 'devel'
+    push @versionAliases, 'blead', 'devel';
   }
   else {
     push @versionAliases, 'latest';
