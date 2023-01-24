@@ -39,10 +39,10 @@ sub entry {
   }
 
   if (Perl::Version->new($version)->version % 2) {
-    push @versionAliases, 'blead', 'devel';
+    push @versionAliases, 'devel';
   }
   else {
-    push @versionAliases, 'latest';
+    push @versionAliases, 'latest', 'stable';
   }
  
   (my $buildSuffix = $build) =~ s/^main,//;
