@@ -26,15 +26,15 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.8.tar.xz -o perl-5.37.8.tar.xz \
-    && echo 'eca6396a4b1aa7a38ef467ce54ed897cc84ba948fad0f90aeb210e57b04daf3c *perl-5.37.8.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.37.8.tar.xz -C /usr/src/perl \
-    && rm perl-5.37.8.tar.xz \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.9.tar.xz -o perl-5.37.9.tar.xz \
+    && echo '869c2b8c5d031608ecd1d9cf107413a6779f5b8bfd35df882a460d97a28af6a6 *perl-5.37.9.tar.xz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.37.9.tar.xz -C /usr/src/perl \
+    && rm perl-5.37.9.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -57,4 +57,4 @@ RUN apt-get update \
 
 WORKDIR /
 
-CMD ["perl5.37.8","-de0"]
+CMD ["perl5.37.9","-de0"]

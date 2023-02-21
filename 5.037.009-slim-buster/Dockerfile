@@ -1,14 +1,35 @@
-FROM buildpack-deps:buster
+FROM debian:buster-slim
 LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
-RUN true \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.8.tar.xz -o perl-5.37.8.tar.xz \
-    && echo 'eca6396a4b1aa7a38ef467ce54ed897cc84ba948fad0f90aeb210e57b04daf3c *perl-5.37.8.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.37.8.tar.xz -C /usr/src/perl \
-    && rm perl-5.37.8.tar.xz \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       bzip2 \
+       ca-certificates \
+       # cpio \
+       curl \
+       dpkg-dev \
+       # file \
+       gcc \
+       # g++ \
+       # libbz2-dev \
+       # libdb-dev \
+       libc6-dev \
+       # libgdbm-dev \
+       # liblzma-dev \
+       make \
+       netbase \
+       patch \
+       # procps \
+       zlib1g-dev \
+       xz-utils \
+       libssl-dev \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.9.tar.xz -o perl-5.37.9.tar.xz \
+    && echo '869c2b8c5d031608ecd1d9cf107413a6779f5b8bfd35df882a460d97a28af6a6 *perl-5.37.9.tar.xz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.37.9.tar.xz -C /usr/src/perl \
+    && rm perl-5.37.9.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -26,10 +47,14 @@ RUN true \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo '7dee2176a450a8be3a6b9b91dac603a0c3a7e807042626d3fe6c93d843f75610 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && true \
+    && savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
+    && apt-mark auto '.*' > /dev/null \
+    && apt-mark manual $savedPackages \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7046* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /
 
-CMD ["perl5.37.8","-de0"]
+CMD ["perl5.37.9","-de0"]
