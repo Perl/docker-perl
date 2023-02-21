@@ -5,10 +5,10 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.8.tar.xz -o perl-5.37.8.tar.xz \
-    && echo 'eca6396a4b1aa7a38ef467ce54ed897cc84ba948fad0f90aeb210e57b04daf3c *perl-5.37.8.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.37.8.tar.xz -C /usr/src/perl \
-    && rm perl-5.37.8.tar.xz \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.9.tar.xz -o perl-5.37.9.tar.xz \
+    && echo '869c2b8c5d031608ecd1d9cf107413a6779f5b8bfd35df882a460d97a28af6a6 *perl-5.37.9.tar.xz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.37.9.tar.xz -C /usr/src/perl \
+    && rm perl-5.37.9.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -32,4 +32,4 @@ RUN true \
 
 WORKDIR /
 
-CMD ["perl5.37.8","-de0"]
+CMD ["perl5.37.9","-de0"]
