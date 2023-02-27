@@ -69,7 +69,7 @@ sub release {
   my $builds  = shift;
   my $eol     = shift // 0;
 
-  my @builds = (@$builds, map {"$_,threaded"} @$builds);
+  my @builds = grep !/debug/, (@$builds, map {"$_,threaded"} @$builds);
 
   for my $build (@builds) {
     for my $debian (reverse @{$release->{debian_release}}) {
