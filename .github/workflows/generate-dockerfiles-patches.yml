@@ -29,10 +29,6 @@ jobs:
       - name: Show diffstat (if any)
         run: |
           git --no-pager diff --stat HEAD
-      - name: Generate EOL Dockerfiles/patches
-        run: |
-          cd eol
-          perl -I../local/lib/perl5 ../generate.pl
       - name: Show diffstat (if any)
         run: |
           git --no-pager diff --stat HEAD
