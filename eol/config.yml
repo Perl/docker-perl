@@ -57,28 +57,32 @@ releases:
       - buster
 
   - version: 5.20.3
-    sha256:  1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b
+    sha256:  3524e3a76b71650ab2f794fd68e45c366ec375786d2ad2dca767da424bbb9b4a
+    type:    gz
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
       - buster
 
   - version: 5.22.4
-    sha256:  8b3122046d1186598082d0e6da53193b045e85e3505e7d37ee0bdd0bdb539b71
+    sha256:  713243dce27d7aa0bdbf52b2070de5ce449f9ffbcc14a93efbc6f2beff0f5ce8
+    type:    xz
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
       - buster
 
   - version: 5.24.4
-    sha256:  e34ff38c54857f431f37403b757267c9998152bf46b5c750b462f62461279b10
+    sha256:  7f080287ff64750270689843ae945f02159a33cb8f2fc910248c15befba5db84
+    type:    xz
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
       - buster
 
   - version: 5.26.3
-    sha256:  9ff35a613213f29ab53975141af6825ae7d4408895538cac0922e47ab92a1477
+    sha256:  e0a17cdaed5304aea1783e507e56bb0001dd72c46f211553ead3a580c3f38135
+    type:    xz
     debian_release:
       - stretch
       - buster
