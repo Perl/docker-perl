@@ -96,3 +96,10 @@ releases:
     debian_release:
       - buster
       - bullseye
+
+  - version: 5.32.1
+    sha256:  57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309
+    type:    xz
+    debian_release:
+      - buster
+      - bullseye
