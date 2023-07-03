@@ -63,6 +63,21 @@ index bdcfaf1..1824010 100755
  	*-O*)	case "$ccflags$cppsymbols" in
  		*_FORTIFY_SOURCE=*) # Don't add it again.
  			echo "You seem to have -D_FORTIFY_SOURCE already, not adding it." >&4
+diff --git a/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm b/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm
+index a7fae86..bf35d3e 100644
+--- a/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm
++++ b/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm
+@@ -165,6 +165,10 @@ sub _unix_os2_ext {
+                 && -f ( $fullname = "$thispth/lib$thislib.$Config_dlext" ) )
+             {
+             }
++            elsif ( $^O eq 'darwin' && require DynaLoader && defined &DynaLoader::dl_load_file
++                && DynaLoader::dl_load_file( $fullname = "$thispth/lib$thislib.$so", 0 ) )
++            {
++            }
+             elsif ( -f ( $fullname = "$thispth/$thislib$Config_libext" ) ) {
+             }
+             elsif ( -f ( $fullname = "$thispth/lib$thislib.dll$Config_libext" ) ) {
 diff --git a/cpan/Time-Local/t/Local.t b/cpan/Time-Local/t/Local.t
 index 6341396..701d22d 100644
 --- a/cpan/Time-Local/t/Local.t
@@ -153,46 +168,108 @@ index 6341396..701d22d 100644
  SKIP:
  {
      skip 'These tests only run for the package maintainer.', 8
-diff --git a/hints/linux.sh b/hints/linux.sh
-index 3f38ea0..c749f0f 100644
---- a/hints/linux.sh
-+++ b/hints/linux.sh
-@@ -85,7 +85,7 @@ uname_minus_m="${uname_minus_m:-"$targetarch"}"
+diff --git a/ext/DynaLoader/DynaLoader_pm.PL b/ext/DynaLoader/DynaLoader_pm.PL
+index bd95625..1e58349 100644
+--- a/ext/DynaLoader/DynaLoader_pm.PL
++++ b/ext/DynaLoader/DynaLoader_pm.PL
+@@ -499,12 +499,18 @@ sub dl_findfile {
+             foreach $name (@names) {
+ 		my($file) = "$dir$dirsep$name";
+                 print STDERR " checking in $dir for $name\n" if $dl_debug;
+-		$file = ($do_expand) ? dl_expandspec($file) : (-f $file && $file);
+-		#$file = _check_file($file);
+-		if ($file) {
++		if ($do_expand && ($file = dl_expandspec($file))) {
++                    push @found, $file;
++                    next arg; # no need to look any further
++		}
++		elsif (-f $file) {
+                     push(@found, $file);
+                     next arg; # no need to look any further
+                 }
++		elsif (dl_load_file($file, 0)) {
++                    push @found, $file;
++                    next arg; # no need to look any further
++		}
+             }
+         }
+     }
+diff --git a/hints/darwin.sh b/hints/darwin.sh
+index 690fe4e..fdfbdd4 100644
+--- a/hints/darwin.sh
++++ b/hints/darwin.sh
+@@ -301,7 +301,7 @@ case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
+    # We now use MACOSX_DEPLOYMENT_TARGET, if set, as an override by
+    # capturing its value and adding it to the flags.
+     case "$MACOSX_DEPLOYMENT_TARGET" in
+-    10.*)
++    [1-9][0-9].*)
+       add_macosx_version_min ccflags $MACOSX_DEPLOYMENT_TARGET
+       add_macosx_version_min ldflags $MACOSX_DEPLOYMENT_TARGET
+       ;;
+@@ -313,7 +313,7 @@ case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
  
- # Check if we're about to use Intel's ICC compiler
- case "`${cc:-cc} -V 2>&1`" in
--*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
-+*"Intel(R) C"*" Compiler"*)
-     # record the version, formats:
-     # icc (ICC) 10.1 20080801
-     # icpc (ICC) 10.1 20080801
-@@ -165,6 +165,9 @@ esac
- # plibpth to bypass this check.
- if [ -x /usr/bin/gcc ] ; then
-     gcc=/usr/bin/gcc
-+# clang also provides -print-search-dirs
-+elif ${cc:-cc} --version 2>/dev/null | grep -q '^clang ' ; then
-+    gcc=${cc:-cc}
- else
-     gcc=gcc
+ *** Unexpected MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
+ ***
+-*** Please either set it to 10.something, or to empty.
++*** Please either set it to a valid macOS version number (e.g., 10.15) or to empty.
+ 
+ EOM
+       exit 1
+@@ -327,7 +327,7 @@ EOM
+     # "ProductVersion:    10.11"     "10.11"
+         prodvers=`sw_vers|awk '/^ProductVersion:/{print $2}'|awk -F. '{print $1"."$2}'`
+     case "$prodvers" in
+-    10.*)
++    [1-9][0-9].*)
+       add_macosx_version_min ccflags $prodvers
+       add_macosx_version_min ldflags $prodvers
+       ;;
+@@ -342,12 +342,19 @@ EOM
+       exit 1
+     esac
+ 
+-    # The X in 10.X
+-    prodvers_minor=$(echo $prodvers|awk -F. '{print $2}')
++    darwin_major=$(echo $osvers|awk -F. '{print $1}')
+ 
+-    # macOS (10.12) deprecated syscall().
+-    if [ "$prodvers_minor" -ge 12 ]; then
++    # macOS 10.12 (darwin 16.0.0) deprecated syscall().
++    if [ "$darwin_major" -ge 16 ]; then
+         d_syscall='undef'
++        # If deploying to pre-10.12, suppress Time::HiRes's detection of the system clock_gettime()
++        case "$MACOSX_DEPLOYMENT_TARGET" in
++          10.[6-9]|10.10|10.11)
++          ccflags="$ccflags -Werror=partial-availability -D_DARWIN_FEATURE_CLOCK_GETTIME=0"
++          ;;
++        *)
++          ;;
++        esac
+     fi
+ 
+    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+@@ -511,3 +518,20 @@ if test "$d_unsetenv" = "$define" -a \
+         ccflags="$ccflags -DPERL_USE_SAFE_PUTENV"
  fi
-@@ -178,6 +181,16 @@ case "$plibpth" in
-     ;;
- esac
- 
-+# For the musl libc, perl should #define _GNU_SOURCE.  Otherwise, some
-+# available functions, like memem, won't be used.  See the discussion in
-+# [perl #133760].  musl doesn't offer an easy way to identify it, but,
-+# at least on alpine linux, the ldd --version output contains the
-+# string 'musl.'
-+case `ldd --version 2>&1` in
-+    musl*)  ccflags="$ccflags -D_GNU_SOURCE" ;;
-+        *) ;;
+ EOOVER
++
++# if you use a newer toolchain before OS X 10.9 these functions may be
++# incorrectly detected, so disable them
++# OS X 10.10.x corresponds to kernel 14.x
++case "$osvers" in
++    [1-9].*|1[0-3].*)
++	d_linkat=undef
++	d_openat=undef
++	d_renameat=undef
++	d_unlinkat=undef
++	d_fchmodat=undef
++	;;
 +esac
 +
- # libquadmath is sometimes installed as gcc internal library,
- # so contrary to our usual policy of *not* looking at gcc internal
- # directories we now *do* look at them, in case they contain
++# mkostemp() was autodetected as present but found to not be linkable
++# on 15.6.0.  Unknown what other OS versions are affected.
++d_mkostemp=undef
 diff --git a/pp.c b/pp.c
 index fbba3bd..1e0a5eb 100644
 --- a/pp.c

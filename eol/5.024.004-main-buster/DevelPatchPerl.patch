@@ -63,6 +63,21 @@ index cf143bf..c56df9d 100755
  	*-O*)	case "$ccflags$cppsymbols" in
  		*_FORTIFY_SOURCE=*) # Don't add it again.
  			echo "You seem to have -D_FORTIFY_SOURCE already, not adding it." >&4
+diff --git a/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm b/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm
+index 93183a3..7d3bd49 100644
+--- a/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm
++++ b/cpan/ExtUtils-MakeMaker/lib/ExtUtils/Liblist/Kid.pm
+@@ -164,6 +164,10 @@ sub _unix_os2_ext {
+                 && -f ( $fullname = "$thispth/lib$thislib.$Config_dlext" ) )
+             {
+             }
++            elsif ( $^O eq 'darwin' && require DynaLoader && defined &DynaLoader::dl_load_file
++                && DynaLoader::dl_load_file( $fullname = "$thispth/lib$thislib.$so", 0 ) )
++            {
++            }
+             elsif ( -f ( $fullname = "$thispth/$thislib$Config_libext" ) ) {
+             }
+             elsif ( -f ( $fullname = "$thispth/lib$thislib.dll$Config_libext" ) ) {
 diff --git a/cpan/Time-Local/t/Local.t b/cpan/Time-Local/t/Local.t
 index 472e71a..0a852a0 100644
 --- a/cpan/Time-Local/t/Local.t
@@ -111,139 +126,172 @@ index 472e71a..0a852a0 100644
         '60 day difference between two calls to timegm');
  }
  
-diff --git a/hints/linux.sh b/hints/linux.sh
-index fb5a46e..c749f0f 100644
---- a/hints/linux.sh
-+++ b/hints/linux.sh
-@@ -85,7 +85,7 @@ uname_minus_m="${uname_minus_m:-"$targetarch"}"
+diff --git a/ext/DynaLoader/DynaLoader_pm.PL b/ext/DynaLoader/DynaLoader_pm.PL
+index e828f35..62f51bc 100644
+--- a/ext/DynaLoader/DynaLoader_pm.PL
++++ b/ext/DynaLoader/DynaLoader_pm.PL
+@@ -499,12 +499,18 @@ sub dl_findfile {
+             foreach $name (@names) {
+ 		my($file) = "$dir$dirsep$name";
+                 print STDERR " checking in $dir for $name\n" if $dl_debug;
+-		$file = ($do_expand) ? dl_expandspec($file) : (-f $file && $file);
+-		#$file = _check_file($file);
+-		if ($file) {
++		if ($do_expand && ($file = dl_expandspec($file))) {
++                    push @found, $file;
++                    next arg; # no need to look any further
++		}
++		elsif (-f $file) {
+                     push(@found, $file);
+                     next arg; # no need to look any further
+                 }
++		elsif (dl_load_file($file, 0)) {
++                    push @found, $file;
++                    next arg; # no need to look any further
++		}
+             }
+         }
+     }
+diff --git a/hints/darwin.sh b/hints/darwin.sh
+index afadf53..fdfbdd4 100644
+--- a/hints/darwin.sh
++++ b/hints/darwin.sh
+@@ -35,15 +35,10 @@ esac
+ # but that caused too much grief.
+ # vendorlib="/System/Library/Perl/${version}"; # Apple-supplied modules
  
- # Check if we're about to use Intel's ICC compiler
- case "`${cc:-cc} -V 2>&1`" in
--*"Intel(R) C++ Compiler"*|*"Intel(R) C Compiler"*)
-+*"Intel(R) C"*" Compiler"*)
-     # record the version, formats:
-     # icc (ICC) 10.1 20080801
-     # icpc (ICC) 10.1 20080801
-@@ -165,6 +165,9 @@ esac
- # plibpth to bypass this check.
- if [ -x /usr/bin/gcc ] ; then
-     gcc=/usr/bin/gcc
-+# clang also provides -print-search-dirs
-+elif ${cc:-cc} --version 2>/dev/null | grep -q '^clang ' ; then
-+    gcc=${cc:-cc}
- else
-     gcc=gcc
- fi
-@@ -178,6 +181,16 @@ case "$plibpth" in
-     ;;
+-# BSD paths
+-case "$prefix" in
+-'')	# Default install; use non-system directories
+-	prefix='/usr/local';
+-	siteprefix='/usr/local';
+-	;;
+-'/usr')	# We are building/replacing the built-in perl
+-	prefix='/';
+-	installprefix='/';
++case "$darwin_distribution" in
++$define) # We are building/replacing the built-in perl
++	prefix='/usr';
++	installprefix='/usr';
+ 	bin='/usr/bin';
+ 	siteprefix='/usr/local';
+ 	# We don't want /usr/bin/HEAD issues.
+@@ -68,8 +63,6 @@ case "$prefix" in
+ 	siteman1dir='/usr/local/share/man/man1';
+ 	siteman3dir='/usr/local/share/man/man3';
+ 	;;
+-  *)	# Anything else; use non-system directories, use Configure defaults
+-	;;
  esac
  
-+# For the musl libc, perl should #define _GNU_SOURCE.  Otherwise, some
-+# available functions, like memem, won't be used.  See the discussion in
-+# [perl #133760].  musl doesn't offer an easy way to identify it, but,
-+# at least on alpine linux, the ldd --version output contains the
-+# string 'musl.'
-+case `ldd --version 2>&1` in
-+    musl*)  ccflags="$ccflags -D_GNU_SOURCE" ;;
-+        *) ;;
+ ##
+@@ -189,11 +182,13 @@ esac
+ # From http://ftp.netbsd.org/pub/pkgsrc/current/pkgsrc/mk/platform/Darwin.mk
+ # and https://trac.macports.org/wiki/XcodeVersionInfo
+ # and https://trac.macports.org/wiki/UsingTheRightCompiler
++# and https://gist.github.com/yamaya/2924292
++# and http://opensource.apple.com/source/clang/
+ #
+-# OS, Kernel, Xcode Version
+-# Note that Xcode gets updates on older systems sometimes.
+-# pkgsrc generally expects that the most up-to-date xcode available for
+-# an OS version is installed
++# Note that Xcode gets updates on older systems sometimes, and in
++# general that the OS levels and XCode levels are not synchronized
++# since new releases of XCode usually support both some new and some
++# old OS releases.
+ #
+ # Note that Apple hijacks the clang preprocessor symbols __clang_major__
+ # and __clang_minor__ so they cannot be used (easily) to detect the
+@@ -243,7 +238,8 @@ esac
+ #                                 7.1   (clang 3.7 as 7.0/700.1.76)
+ #                                 7.2   (clang 3.7 as 7.0.2/700.1.81)
+ #                                 7.2.1 (clang 3.7 as 7.0.2/700.1.81)
+-#                                 7.3   (clang 3.7 as 7.3.0/703.0.29)
++#                                 7.3   (clang 3.8 as 7.3.0/703.0.29)
++# Sierra          10.12.x 16.x.y  8.0.0 (clang 3.8 as 8.0/800.0.38)
+ #
+ 
+ # Processors Supported
+@@ -294,7 +290,7 @@ case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
+ [7-9].*)   # OS X 10.3.x - 10.5.x
+    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+    case "$ld" in
+-       *MACOSX_DEVELOPMENT_TARGET*) ;;
++       *MACOSX_DEPLOYMENT_TARGET*) ;;
+        *) ld="env MACOSX_DEPLOYMENT_TARGET=10.3 ${ld}" ;;
+    esac
+    ;;
+@@ -305,7 +301,7 @@ case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
+    # We now use MACOSX_DEPLOYMENT_TARGET, if set, as an override by
+    # capturing its value and adding it to the flags.
+     case "$MACOSX_DEPLOYMENT_TARGET" in
+-    10.*)
++    [1-9][0-9].*)
+       add_macosx_version_min ccflags $MACOSX_DEPLOYMENT_TARGET
+       add_macosx_version_min ldflags $MACOSX_DEPLOYMENT_TARGET
+       ;;
+@@ -317,7 +313,7 @@ case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
+ 
+ *** Unexpected MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
+ ***
+-*** Please either set it to 10.something, or to empty.
++*** Please either set it to a valid macOS version number (e.g., 10.15) or to empty.
+ 
+ EOM
+       exit 1
+@@ -331,7 +327,7 @@ EOM
+     # "ProductVersion:    10.11"     "10.11"
+         prodvers=`sw_vers|awk '/^ProductVersion:/{print $2}'|awk -F. '{print $1"."$2}'`
+     case "$prodvers" in
+-    10.*)
++    [1-9][0-9].*)
+       add_macosx_version_min ccflags $prodvers
+       add_macosx_version_min ldflags $prodvers
+       ;;
+@@ -346,6 +342,21 @@ EOM
+       exit 1
+     esac
+ 
++    darwin_major=$(echo $osvers|awk -F. '{print $1}')
++
++    # macOS 10.12 (darwin 16.0.0) deprecated syscall().
++    if [ "$darwin_major" -ge 16 ]; then
++        d_syscall='undef'
++        # If deploying to pre-10.12, suppress Time::HiRes's detection of the system clock_gettime()
++        case "$MACOSX_DEPLOYMENT_TARGET" in
++          10.[6-9]|10.10|10.11)
++          ccflags="$ccflags -Werror=partial-availability -D_DARWIN_FEATURE_CLOCK_GETTIME=0"
++          ;;
++        *)
++          ;;
++        esac
++    fi
++
+    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+    ;;
+ esac
+@@ -507,3 +518,20 @@ if test "$d_unsetenv" = "$define" -a \
+         ccflags="$ccflags -DPERL_USE_SAFE_PUTENV"
+ fi
+ EOOVER
++
++# if you use a newer toolchain before OS X 10.9 these functions may be
++# incorrectly detected, so disable them
++# OS X 10.10.x corresponds to kernel 14.x
++case "$osvers" in
++    [1-9].*|1[0-3].*)
++	d_linkat=undef
++	d_openat=undef
++	d_renameat=undef
++	d_unlinkat=undef
++	d_fchmodat=undef
++	;;
 +esac
 +
- # libquadmath is sometimes installed as gcc internal library,
- # so contrary to our usual policy of *not* looking at gcc internal
- # directories we now *do* look at them, in case they contain
-@@ -221,92 +234,6 @@ case "$libc" in
-     ;;
- esac
- 
--# Are we using ELF?  Thanks to Kenneth Albanowski <kjahds@kjahds.com>
--# for this test.
--cat >try.c <<'EOM'
--/* Test for whether ELF binaries are produced */
--#include <fcntl.h>
--#include <stdlib.h>
--#include <unistd.h>
--main() {
--	char buffer[4];
--	int i=open("a.out",O_RDONLY);
--	if(i==-1)
--		exit(1); /* fail */
--	if(read(i,&buffer[0],4)<4)
--		exit(1); /* fail */
--	if(buffer[0] != 127 || buffer[1] != 'E' ||
--           buffer[2] != 'L' || buffer[3] != 'F')
--		exit(1); /* fail */
--	exit(0); /* succeed (yes, it's ELF) */
--}
--EOM
--if ${cc:-gcc} $ccflags $ldflags try.c >/dev/null 2>&1 && $run ./a.out; then
--    cat <<'EOM' >&4
--
--You appear to have ELF support.  I'll try to use it for dynamic loading.
--If dynamic loading doesn't work, read hints/linux.sh for further information.
--EOM
--
--else
--    cat <<'EOM' >&4
--
--You don't have an ELF gcc.  I will use dld if possible.  If you are
--using a version of DLD earlier than 3.2.6, or don't have it at all, you
--should probably upgrade. If you are forced to use 3.2.4, you should
--uncomment a couple of lines in hints/linux.sh and restart Configure so
--that shared libraries will be disallowed.
--
--EOM
--    lddlflags="-r $lddlflags"
--    # These empty values are so that Configure doesn't put in the
--    # Linux ELF values.
--    ccdlflags=' '
--    cccdlflags=' '
--    ccflags="-DOVR_DBL_DIG=14 $ccflags"
--    so='sa'
--    dlext='o'
--    nm_so_opt=' '
--    ## If you are using DLD 3.2.4 which does not support shared libs,
--    ## uncomment the next two lines:
--    #ldflags="-static"
--    #so='none'
--
--	# In addition, on some systems there is a problem with perl and NDBM
--	# which causes AnyDBM and NDBM_File to lock up. This is evidenced
--	# in the tests as AnyDBM just freezing.  Apparently, this only
--	# happens on a.out systems, so we disable NDBM for all a.out linux
--	# systems.  If someone can suggest a more robust test
--	#  that would be appreciated.
--	#
--	# More info:
--	# Date: Wed, 7 Feb 1996 03:21:04 +0900
--	# From: Jeffrey Friedl <jfriedl@nff.ncl.omron.co.jp>
--	#
--	# I tried compiling with DBM support and sure enough things locked up
--	# just as advertised. Checking into it, I found that the lockup was
--	# during the call to dbm_open. Not *in* dbm_open -- but between the call
--	# to and the jump into.
--	#
--	# To make a long story short, making sure that the *.a and *.sa pairs of
--	#   /usr/lib/lib{m,db,gdbm}.{a,sa}
--	# were perfectly in sync took care of it.
--	#
--	# This will generate a harmless Whoa There! message
--	case "$d_dbm_open" in
--	'')	cat <<'EOM' >&4
--
--Disabling ndbm.  This will generate a Whoa There message in Configure.
--Read hints/linux.sh for further information.
--EOM
--		# You can override this with Configure -Dd_dbm_open
--		d_dbm_open=undef
--		;;
--	esac
--fi
--
--rm -f try.c a.out
--
- if ${sh:-/bin/sh} -c exit; then
-   echo ''
-   echo 'You appear to have a working bash.  Good.'
++# mkostemp() was autodetected as present but found to not be linkable
++# on 15.6.0.  Unknown what other OS versions are affected.
++d_mkostemp=undef
 diff --git a/pp.c b/pp.c
 index 4a2cde0..b979e19 100644
 --- a/pp.c
