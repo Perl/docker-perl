@@ -26,10 +26,10 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.37.11.tar.xz -o perl-5.37.11.tar.xz \
-    && echo '3946b00266595ccc44df28275e2fbb7b86c1482934cbeab2780db304a75ffd58 *perl-5.37.11.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.37.11.tar.xz -C /usr/src/perl \
-    && rm perl-5.37.11.tar.xz \
+    && curl -fL https://www.cpan.org/src/5.0/perl-5.39.1.tar.xz -o perl-5.39.1.tar.xz \
+    && echo '326b797eb65946026c932f1750d740e908566c5c7e847341e1d60f63324fd03e *perl-5.39.1.tar.xz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.39.1.tar.xz -C /usr/src/perl \
+    && rm perl-5.39.1.tar.xz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -39,9 +39,9 @@ RUN apt-get update \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
     && cd /usr/src \
-    && curl -fLO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz \
-    && echo '3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862 *App-cpanminus-1.7046.tar.gz' | sha256sum --strict --check - \
-    && tar -xzf App-cpanminus-1.7046.tar.gz && cd App-cpanminus-1.7046 && perl bin/cpanm . && cd /root \
+    && curl -fLO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz \
+    && echo '963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5 *App-cpanminus-1.7047.tar.gz' | sha256sum --strict --check - \
+    && tar -xzf App-cpanminus-1.7047.tar.gz && cd App-cpanminus-1.7047 && perl bin/cpanm . && cd /root \
     && cpanm IO::Socket::SSL \
     && curl -fL https://raw.githubusercontent.com/skaji/cpm/0.997011/cpm -o /usr/local/bin/cpm \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
@@ -52,9 +52,9 @@ RUN apt-get update \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
-    && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7046* /tmp/* \
+    && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /
 
-CMD ["perl5.37.11","-de0"]
+CMD ["perl5.39.1","-de0"]
