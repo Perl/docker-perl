@@ -85,9 +85,9 @@ my %builds;
 
 # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
 my %cpanm = (
-  name   => "App-cpanminus-1.7046",
-  url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7046.tar.gz",
-  sha256 => "3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862",
+  name   => "App-cpanminus-1.7047",
+  url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
+  sha256 => "963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5",
 );
 
 # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
