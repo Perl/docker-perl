@@ -8,13 +8,13 @@ options:
   threaded: "-Dusethreads"
 
 releases:
-  - version: 5.37.11
-    sha256:  3946b00266595ccc44df28275e2fbb7b86c1482934cbeab2780db304a75ffd58
+  - version: 5.39.1
+    sha256:  326b797eb65946026c932f1750d740e908566c5c7e847341e1d60f63324fd03e
     extra_flags: "-Dusedevel -Dversiononly=undef"
     type:    xz
     debian_release:
-      - buster
       - bullseye
+      - bookworm
 
   - version: 5.34.1
     sha256:  6d52cf833ff1af27bb5e986870a2c30cec73c044b41e3458cd991f94374039f7
