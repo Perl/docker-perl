@@ -30,6 +30,6 @@ RUN true \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
-WORKDIR /
+WORKDIR /usr/src/app
 
 CMD ["perl5.38.0","-de0"]

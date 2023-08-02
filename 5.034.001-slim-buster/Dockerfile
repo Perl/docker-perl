@@ -55,6 +55,6 @@ RUN apt-get update \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
-WORKDIR /
+WORKDIR /usr/src/app
 
 CMD ["perl5.34.1","-de0"]
