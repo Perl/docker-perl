@@ -68,3 +68,13 @@ jobs:
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           docker run "$img" cpm install -v Mojolicious
+      - name: COPY all to default WORKDIR
+        run: |
+          dir='${{ matrix.directory }}'
+          img="perl:${dir//,/-}"
+          mkdir -p test/lib
+          cat <<EOF >Dockerfile
+          FROM $img
+          COPY . .
+          EOF
+          docker build -f Dockerfile test
