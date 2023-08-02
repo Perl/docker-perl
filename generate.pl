@@ -318,6 +318,6 @@ RUN {{docker_slim_run_install}} \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
     && cpanm --version && cpm --version
 
-WORKDIR /
+WORKDIR /usr/src/app
 
 CMD ["perl{{version}}","-de0"]
