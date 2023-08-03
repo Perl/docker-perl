@@ -24,7 +24,7 @@ jobs:
         name: Enumerate Dockerfiles
         run: |
           matrix="$(dirname */Dockerfile | sort -rn | jq -csR 'rtrimstr("\n") | split("\n") | { directory: . }')"
-          echo "::set-output name=matrix::$matrix"
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
   build-image:
     needs: generate-matrix
     runs-on: ubuntu-latest
