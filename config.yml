@@ -8,8 +8,8 @@ options:
   threaded: "-Dusethreads"
 
 releases:
-  - version: 5.39.1
-    sha256:  326b797eb65946026c932f1750d740e908566c5c7e847341e1d60f63324fd03e
+  - version: 5.39.2
+    sha256:  b7ae33d3c6ff80107d14c92dfb3d8d4944fec926b11bcc40c8764b73c710694f
     extra_flags: "-Dusedevel -Dversiononly=undef"
     type:    xz
     debian_release:
