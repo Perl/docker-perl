@@ -8,8 +8,8 @@ use YAML::XS;
 my %arches = (
 
   # https://github.com/docker-library/official-images/blob/master/library/debian
-  bullseye => 'amd64, arm32v5, arm32v7, arm64v8, i386, mips64le, ppc64le, s390x',
-  buster => 'amd64, arm32v7, arm64v8, i386',
+  default => 'amd64, arm32v5, arm32v7, arm64v8, i386, mips64le, ppc64le, s390x',
+  buster  => 'amd64, arm32v7, arm64v8, i386',
 );
 
 print <<"END_HEADER";
@@ -17,7 +17,7 @@ Maintainers: Peter Martini <PeterCMartini\@GMail.com> (\@PeterMartini),
              Zak B. Elep <zakame\@cpan.org> (\@zakame)
 GitRepo: https://github.com/perl/docker-perl.git
 GitCommit: @{[ qx{ git log -1 --format=format:%H } ]}
-Architectures: $arches{buster}
+Architectures: $arches{default}
 END_HEADER
 
 sub suffix {
