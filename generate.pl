@@ -287,7 +287,6 @@ Default: C<yes>
 
 __DATA__
 FROM {{image}}:{{tag}}
-LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 {{docker_copy_perl_patch}}
 WORKDIR /usr/src/perl
