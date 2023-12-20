@@ -70,6 +70,13 @@ savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
 EOF
 chomp $docker_slim_run_purge;
 
+my $docker_debug_run_install = <<'EOF';
+apt-get update \
+    && apt-get install -y --no-install-recommends \
+       gdb
+EOF
+chomp $docker_debug_run_install;
+
 my $config = do {
   open my $fh, '<', 'config.yml' or die "Couldn't open config";
   local $/;
@@ -152,7 +159,9 @@ for my $release (@{$config->{releases}}) {
 
     $release->{extra_flags}    ||= '';
 
-    $release->{image} = $build =~ /main/ ? 'buildpack-deps' : 'debian';
+    $release->{image} = $build =~ /(main|debug)/ ? 'buildpack-deps' : 'debian';
+
+    my $debug_flags = $build =~ /debug/ ? '-Doptimize=-g -DEBUGGING=both' : '';
 
     for my $debian_release (@{$release->{debian_release}}) {
 
@@ -162,15 +171,23 @@ for my $release (@{$config->{releases}}) {
       $output =~ s/\{\{args\}\}/$builds{$build}/mg;
 
       if ($build =~ /slim/) {
-        $output =~ s/\{\{docker_slim_run_install\}\}/$docker_slim_run_install/mg;
-        $output =~ s/\{\{docker_slim_run_purge\}\}/$docker_slim_run_purge/mg;
+        $output =~ s/\{\{docker_run_install\}\}/$docker_slim_run_install/mg;
+        $output =~ s/\{\{docker_run_purge\}\}/$docker_slim_run_purge/mg;
         $output =~ s/\{\{tag\}\}/$debian_release-slim/mg;
       }
-      else {
-        $output =~ s/\{\{docker_slim_run_install\}\}/true/mg;
-        $output =~ s/\{\{docker_slim_run_purge\}\}/true/mg;
+      elsif ($build =~ /debug/) {
+        $output =~ s/\{\{docker_run_install\}\}/$docker_debug_run_install/mg;
+        $output =~ s/\{\{debug_flags\}\}/$debug_flags/mg;
+        $output =~ s#\{\{docker_run_purge\}\}#rm -fr /var/cache/apt/* /var/lib/apt/lists/*#mg;
         $output =~ s/\{\{tag\}\}/$debian_release/mg;
       }
+      else {
+        $output =~ s/\{\{docker_run_install\}\}/true/mg;
+        $output =~ s/\{\{docker_run_purge\}\}/true/mg;
+        $output =~ s/\{\{tag\}\}/$debian_release/mg;
+      }
+
+      $output =~ s/ \{\{debug_flags\}\}//mg;
 
       my $dir = sprintf "%i.%03i.%03i-%s-%s", ($release->{version} =~ /(\d+)\.(\d+)\.(\d+)/), $build, $debian_release;
 
@@ -291,7 +308,7 @@ FROM {{image}}:{{tag}}
 {{docker_copy_perl_patch}}
 WORKDIR /usr/src/perl
 
-RUN {{docker_slim_run_install}} \
+RUN {{docker_run_install}} \
     && curl -fL {{url}} -o perl-{{version}}.tar.{{type}} \
     && echo '{{sha256}} *perl-{{version}}.tar.{{type}}' | sha256sum --strict --check - \
     && tar --strip-components=1 -xaf perl-{{version}}.tar.{{type}} -C /usr/src/perl \
@@ -300,7 +317,7 @@ RUN {{docker_slim_run_install}} \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} {{debug_flags}} -des \
     && make -j$(nproc) \
     && {{test}} \
     && make install \
@@ -313,7 +330,7 @@ RUN {{docker_slim_run_install}} \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo '{{cpm_dist_sha256}} */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && {{docker_slim_run_purge}} \
+    && {{docker_run_purge}} \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
     && cpanm --version && cpm --version
 
