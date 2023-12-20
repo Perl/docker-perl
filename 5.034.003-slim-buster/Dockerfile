@@ -1,5 +1,4 @@
 FROM debian:buster-slim
-LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@cpan.org>"
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
