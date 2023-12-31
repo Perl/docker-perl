@@ -3,7 +3,9 @@ use 5.014;
 use strict;
 use warnings;
 use YAML::XS;
+use CPAN::Perl::Releases::MetaCPAN;
 use Devel::PatchPerl;
+use File::Basename;
 use LWP::Simple;
 
 sub die_with_sample {
@@ -115,9 +117,9 @@ for my $release (@{$config->{releases}}) {
   die "Bad version: $release->{version}" unless $release->{version} =~ /\A5\.\d+\.\d+\Z/;
 
   my $patch;
-  $release->{type} ||= 'bz2';
-  my $file = "perl-$release->{version}.tar.$release->{type}";
-  my $url  = "https://www.cpan.org/src/5.0/$file";
+  my $tarball = CPAN::Perl::Releases::MetaCPAN::perl_tarballs($release->{version})->{'tar.gz'};
+  my ($file) = File::Basename::fileparse($tarball);
+  my $url  = "https://cpan.metacpan.org/authors/id/$tarball";
   if (-f "downloads/$file" && `sha256sum downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Qdownloads\/$file\E/) {
     print "Skipping download of $file, already current\n";
   }
@@ -130,7 +132,7 @@ for my $release (@{$config->{releases}}) {
     qx{rm -fR $dir};
     mkdir $dir or die "Couldn't create $dir";
     qx{
-      tar -C "downloads" -xf $dir.tar.$release->{type} &&\
+      tar -C "downloads" -xf $dir.tar.gz &&\
       cd $dir &&\
       find . -exec chmod u+w {} + &&\
       git init &&\
@@ -255,7 +257,6 @@ L<debian|https://hub.docker.com/_/debian> Docker images.
 This should be a list of tags for different Debian versions:
 
     - version: 5.30.0
-      type:    xz
       debian_release:
         - bullseye
         - buster
@@ -292,10 +293,10 @@ FROM {{image}}:{{tag}}
 WORKDIR /usr/src/perl
 
 RUN {{docker_slim_run_install}} \
-    && curl -fL {{url}} -o perl-{{version}}.tar.{{type}} \
-    && echo '{{sha256}} *perl-{{version}}.tar.{{type}}' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-{{version}}.tar.{{type}} -C /usr/src/perl \
-    && rm perl-{{version}}.tar.{{type}} \
+    && curl -fL {{url}} -o perl-{{version}}.tar.gz \
+    && echo '{{sha256}} *perl-{{version}}.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-{{version}}.tar.gz -C /usr/src/perl \
+    && rm perl-{{version}}.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
