@@ -4,10 +4,10 @@ FROM buildpack-deps:bullseye
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.36.3.tar.xz -o perl-5.36.3.tar.xz \
-    && echo '45a228daef66d02fdccc820e71f87e40d8e3df1fc4431f8d4580ec08033866bd *perl-5.36.3.tar.xz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.36.3.tar.xz -C /usr/src/perl \
-    && rm perl-5.36.3.tar.xz \
+    && curl -fL https://cpan.metacpan.org/authors/id/P/PE/PEVANS/perl-5.36.3.tar.gz -o perl-5.36.3.tar.gz \
+    && echo 'f2a1ad88116391a176262dd42dfc52ef22afb40f4c0e9810f15d561e6f1c726a *perl-5.36.3.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.36.3.tar.gz -C /usr/src/perl \
+    && rm perl-5.36.3.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
