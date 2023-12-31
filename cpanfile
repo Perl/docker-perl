@@ -1,3 +1,4 @@
+requires 'CPAN::Perl::Releases::MetaCPAN';
 requires 'Devel::PatchPerl';
 requires 'YAML::XS';
 requires 'LWP::Simple';
