@@ -25,10 +25,10 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -fL https://cpan.metacpan.org/authors/id/E/ET/ETHER/perl-5.39.5.tar.gz -o perl-5.39.5.tar.gz \
-    && echo '39e4f8df83cb747edf3e17a0a2f8ee10353ba16729b665cd5047cec2722f6ed1 *perl-5.39.5.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.39.5.tar.gz -C /usr/src/perl \
-    && rm perl-5.39.5.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.39.6.tar.gz -o perl-5.39.6.tar.gz \
+    && echo 'cb8715636bc744cca6e8864b6daa16f388d16ca3a134df6e6f35bbbe39dd7f63 *perl-5.39.6.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.39.6.tar.gz -C /usr/src/perl \
+    && rm perl-5.39.6.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -56,4 +56,4 @@ RUN apt-get update \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.39.5","-de0"]
+CMD ["perl5.39.6","-de0"]
