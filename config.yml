@@ -15,12 +15,6 @@ releases:
       - bullseye
       - bookworm
 
-  - version: 5.34.3
-    sha256:  5b12f62863332b2a5f54102af9cdf8c010877e4bf3294911edbd594b2a1e8ede
-    debian_release:
-      - buster
-      - bullseye
-
   - version: 5.36.3
     sha256:  f2a1ad88116391a176262dd42dfc52ef22afb40f4c0e9810f15d561e6f1c726a
     debian_release:
@@ -30,6 +24,13 @@ releases:
 
   - version: 5.38.2
     sha256:  a0a31534451eb7b83c7d6594a497543a54d488bc90ca00f5e34762577f40655e
+    debian_release:
+      - buster
+      - bullseye
+      - bookworm
+
+  - version: 5.40.0
+    sha256:  c740348f357396327a9795d3e8323bafd0fe8a5c7835fc1cbaba0cc8dfe7161f
     debian_release:
       - buster
       - bullseye
