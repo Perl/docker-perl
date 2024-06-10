@@ -94,8 +94,8 @@ my %cpanm = (
 
 # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
 my %cpm = (
-  url    => "https://raw.githubusercontent.com/skaji/cpm/0.997014/cpm",
-  sha256 => "ee525f2493e36c6f688eddabaf53a51c4d3b2a4ebaa81576ac8b9f78ab57f4a1",
+  url    => "https://raw.githubusercontent.com/skaji/cpm/0.997017/cpm",
+  sha256 => "e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11",
 );
 
 die_with_sample unless defined $config->{releases};
