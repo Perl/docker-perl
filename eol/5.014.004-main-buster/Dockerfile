@@ -5,7 +5,7 @@ COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.14.4.tar.bz2 -o perl-5.14.4.tar.bz2 \
+    && curl -SL https://cpan.metacpan.org/authors/id/D/DA/DAPM/perl-5.14.4.tar.bz2 -o perl-5.14.4.tar.bz2 \
     && echo 'eece8c2b0d491bf6f746bd1f4f1bb7ce26f6b98e91c54690c617d7af38964745 *perl-5.14.4.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.14.4.tar.bz2 -C /usr/src/perl \
     && rm perl-5.14.4.tar.bz2 \
