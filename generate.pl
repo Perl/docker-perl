@@ -318,6 +318,8 @@ RUN {{docker_slim_run_install}} \
     && rm -fr /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
     && cpanm --version && cpm --version
 
+ENV PERL_CPANM_OPT "--cpanmetadb https://cpanmetadb.plackperl.org/v1.0/ --mirror https://www.cpan.org"
+
 WORKDIR /usr/src/app
 
 CMD ["perl{{version}}","-de0"]
