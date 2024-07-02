@@ -85,11 +85,25 @@ my $template = do {
 
 my %builds;
 
-# sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
-my %cpanm = (
-  name   => "App-cpanminus-1.7047",
-  url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
-  sha256 => "963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5",
+my %install_modules = (
+  cpanm => {
+    name   => "App-cpanminus-1.7047",
+    url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
+    # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
+    sha256 => "963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5",
+  },
+  iosocketssl => {
+    name   => "IO-Socket-SSL-2.085",
+    url    => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.085.tar.gz",
+    # sha256 taken from http://www.cpan.org/authors/id/S/SU/SULLR/CHECKSUMS
+    sha256 => "95b2f7c0628a7e246a159665fbf0620d0d7835e3a940f22d3fdd47c3aa799c2e",
+  },
+  netssleay => {
+    name   => "Net-SSLeay-1.94",
+    url    => "https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz",
+    # sha256 taken from http://www.cpan.org/authors/id/C/CH/CHRISN/CHECKSUMS
+    sha256 => "9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d",
+  },
 );
 
 # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
@@ -148,8 +162,12 @@ for my $release (@{$config->{releases}}) {
   }
 
   for my $build (keys %builds) {
-    $release->{url}             = $url;
-    $release->{"cpanm_dist_$_"} = $cpanm{$_} for keys %cpanm;
+    $release->{url} = $url;
+
+    for my $name (keys %install_modules) {
+      my $module = $install_modules{$name};
+      $release->{"${name}_dist_$_"} = $module->{$_} for keys %$module;
+    }
     $release->{"cpm_dist_$_"}   = $cpm{$_} for keys %cpm;
 
     $release->{extra_flags}    ||= '';
@@ -159,8 +177,7 @@ for my $release (@{$config->{releases}}) {
     for my $debian_release (@{$release->{debian_release}}) {
 
       my $output = $template;
-      $output =~ s/\{\{$_\}\}/$release->{$_}/mg
-        for (qw(version pause extra_flags sha256 type url image cpanm_dist_name cpanm_dist_url cpanm_dist_sha256 cpm_dist_url cpm_dist_sha256));
+      $output =~ s/\{\{$_\}\}/$release->{$_}/mg for keys %$release;
       $output =~ s/\{\{args\}\}/$builds{$build}/mg;
 
       if ($build =~ /slim/) {
@@ -309,7 +326,12 @@ RUN {{docker_slim_run_install}} \
     && curl -fLO {{cpanm_dist_url}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
-    && cpanm IO::Socket::SSL \
+    && curl -fLO '{{netssleay_dist_url}}' \
+    && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
+    && cpanm --from $PWD {{netssleay_dist_name}}.tar.gz \
+    && curl -fLO '{{iosocketssl_dist_url}}' \
+    && echo '{{iosocketssl_dist_sha256}} *{{iosocketssl_dist_name}}.tar.gz' | sha256sum --strict --check - \
+    && SSL_CERT_DIR=/etc/ssl/certs cpanm --from $PWD {{iosocketssl_dist_name}}.tar.gz \
     && curl -fL {{cpm_dist_url}} -o /usr/local/bin/cpm \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo '{{cpm_dist_sha256}} */usr/local/bin/cpm' | sha256sum --strict --check - \
