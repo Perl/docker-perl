@@ -1,18 +1,18 @@
-FROM buildpack-deps:buster
+FROM buildpack-deps:bookworm
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://cpan.metacpan.org/authors/id/P/PE/PEVANS/perl-5.38.2.tar.gz -o perl-5.38.2.tar.gz \
-    && echo 'a0a31534451eb7b83c7d6594a497543a54d488bc90ca00f5e34762577f40655e *perl-5.38.2.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.38.2.tar.gz -C /usr/src/perl \
-    && rm perl-5.38.2.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.41.1.tar.gz -o perl-5.41.1.tar.gz \
+    && echo '7dee38af601b0ba3f3730cb812cdbc799c921da440cb0ce96dd7a4f508b1a6f8 *perl-5.41.1.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.41.1.tar.gz -C /usr/src/perl \
+    && rm perl-5.41.1.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local  -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -36,4 +36,4 @@ RUN true \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.38.2","-de0"]
+CMD ["perl5.41.1","-de0"]
