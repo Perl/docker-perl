@@ -337,7 +337,7 @@ RUN {{docker_slim_run_install}} \
     && echo '{{cpm_dist_sha256}} */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
     && {{docker_slim_run_purge}} \
-    && rm -fr /root/.cpanm /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
+    && rm -fr /root/.cpanm /root/{{netssleay_dist_name}}* /root/{{iosocketssl_dist_name}}* /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /usr/src/app
