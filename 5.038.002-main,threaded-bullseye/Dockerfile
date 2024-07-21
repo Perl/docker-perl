@@ -31,7 +31,7 @@ RUN true \
     && echo 'e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
     && true \
-    && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
+    && rm -fr /root/.cpanm /root/Net-SSLeay-1.94* /root/IO-Socket-SSL-2.085* /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /usr/src/app
