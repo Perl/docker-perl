@@ -1,13 +1,34 @@
-FROM buildpack-deps:bullseye
+FROM debian:bookworm-slim
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
-RUN true \
-    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.41.1.tar.gz -o perl-5.41.1.tar.gz \
-    && echo '7dee38af601b0ba3f3730cb812cdbc799c921da440cb0ce96dd7a4f508b1a6f8 *perl-5.41.1.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.41.1.tar.gz -C /usr/src/perl \
-    && rm perl-5.41.1.tar.gz \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       bzip2 \
+       ca-certificates \
+       # cpio \
+       curl \
+       dpkg-dev \
+       # file \
+       gcc \
+       # g++ \
+       # libbz2-dev \
+       # libdb-dev \
+       libc6-dev \
+       # libgdbm-dev \
+       # liblzma-dev \
+       make \
+       netbase \
+       patch \
+       # procps \
+       zlib1g-dev \
+       xz-utils \
+       libssl-dev \
+    && curl -fL https://cpan.metacpan.org/authors/id/E/ET/ETHER/perl-5.41.2.tar.gz -o perl-5.41.2.tar.gz \
+    && echo '4b8fb14e213cd1b0a6715c3d2d08a833a2ce51ca793f14acecf4799d3a651771 *perl-5.41.2.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.41.2.tar.gz -C /usr/src/perl \
+    && rm perl-5.41.2.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -30,10 +51,14 @@ RUN true \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo 'e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && true \
-    && rm -fr /root/.cpanm /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
+    && savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
+    && apt-mark auto '.*' > /dev/null \
+    && apt-mark manual $savedPackages \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
+    && rm -fr /root/.cpanm /root/Net-SSLeay-1.94* /root/IO-Socket-SSL-2.085* /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.41.1","-de0"]
+CMD ["perl5.41.2","-de0"]
