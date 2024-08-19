@@ -91,6 +91,7 @@ my %install_modules = (
     url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
     # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
     sha256 => "963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5",
+    patch  => q[perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm],
   },
   iosocketssl => {
     name   => "IO-Socket-SSL-2.085",
@@ -325,7 +326,9 @@ RUN {{docker_slim_run_install}} \
     && cd /usr/src \
     && curl -fLO {{cpanm_dist_url}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum --strict --check - \
-    && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} && perl bin/cpanm . && cd /root \
+    && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} \
+    && {{cpanm_dist_patch}} \
+    && perl bin/cpanm . && cd /root \
     && curl -fLO '{{netssleay_dist_url}}' \
     && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && cpanm --from $PWD {{netssleay_dist_name}}.tar.gz \
