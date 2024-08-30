@@ -62,11 +62,15 @@ jobs:
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
+          docker run "$img" cpanm -v Plack@0.9990
+          docker run "$img" cpanm -v Crypt::Argon2@0.024
           docker run "$img" cpanm -v Mojolicious
       - name: Run cpm install test
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
+          docker run "$img" cpm install -v Plack@0.9990
+          docker run "$img" cpm install -v Crypt::Argon2@0.024
           docker run "$img" cpm install -v Mojolicious
       - name: COPY all to default WORKDIR
         run: |
