@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
@@ -25,10 +25,10 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -fL https://cpan.metacpan.org/authors/id/E/ET/ETHER/perl-5.41.2.tar.gz -o perl-5.41.2.tar.gz \
-    && echo '4b8fb14e213cd1b0a6715c3d2d08a833a2ce51ca793f14acecf4799d3a651771 *perl-5.41.2.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.41.2.tar.gz -C /usr/src/perl \
-    && rm perl-5.41.2.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.41.3.tar.gz -o perl-5.41.3.tar.gz \
+    && echo '7b9cd0f84a5350ea485ae6c57f3231d338f8a00c23f193db3964a60d38cf8850 *perl-5.41.3.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.41.3.tar.gz -C /usr/src/perl \
+    && rm perl-5.41.3.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -40,7 +40,9 @@ RUN apt-get update \
     && cd /usr/src \
     && curl -fLO https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz \
     && echo '963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5 *App-cpanminus-1.7047.tar.gz' | sha256sum --strict --check - \
-    && tar -xzf App-cpanminus-1.7047.tar.gz && cd App-cpanminus-1.7047 && perl bin/cpanm . && cd /root \
+    && tar -xzf App-cpanminus-1.7047.tar.gz && cd App-cpanminus-1.7047 \
+    && perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm \
+    && perl bin/cpanm . && cd /root \
     && curl -fLO 'https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz' \
     && echo '9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d *Net-SSLeay-1.94.tar.gz' | sha256sum --strict --check - \
     && cpanm --from $PWD Net-SSLeay-1.94.tar.gz \
@@ -61,4 +63,4 @@ RUN apt-get update \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.41.2","-de0"]
+CMD ["perl5.41.3","-de0"]
