@@ -64,7 +64,7 @@ jobs:
           img="perl:${dir//,/-}"
           if [[ "$dir" != *"slim"* ]]; then
             docker run "$img" cpanm -v Try::Tiny@0.30
-            docker run "$img" cpanm -v Crypt::Argon2@0.024
+            docker run "$img" cpanm -v Net::DNS@1.45_02
           fi
           docker run "$img" cpanm -v Mojolicious
       - name: Run cpm install test
@@ -73,7 +73,7 @@ jobs:
           img="perl:${dir//,/-}"
           if [[ "$dir" != *"slim"* ]]; then
             docker run "$img" cpm install -v Try::Tiny@0.30
-            docker run "$img" cpm install -v Crypt::Argon2@0.024
+            docker run "$img" cpm install -v Net::DNS@1.45_02
           fi
           docker run "$img" cpm install -v Mojolicious
       - name: COPY all to default WORKDIR
