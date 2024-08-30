@@ -63,7 +63,7 @@ jobs:
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           if [[ "$dir" != *"slim"* ]]; then
-            docker run "$img" cpanm -v Plack@0.9990
+            docker run "$img" cpanm -v Try::Tiny@0.30
             docker run "$img" cpanm -v Crypt::Argon2@0.024
           fi
           docker run "$img" cpanm -v Mojolicious
@@ -72,7 +72,7 @@ jobs:
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           if [[ "$dir" != *"slim"* ]]; then
-            docker run "$img" cpm install -v Plack@0.9990
+            docker run "$img" cpm install -v Try::Tiny@0.30
             docker run "$img" cpm install -v Crypt::Argon2@0.024
           fi
           docker run "$img" cpm install -v Mojolicious
