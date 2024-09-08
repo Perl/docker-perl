@@ -67,6 +67,13 @@ jobs:
             docker run "$img" cpanm -v Net::DNS@1.45_02
           fi
           docker run "$img" cpanm -v Mojolicious
+      - name: Run cpanm no-lwp by default test
+        run: |
+          dir='${{ matrix.directory }}'
+          img="perl:${dir//,/-}"
+          if [[ "$dir" != *"slim"* ]]; then
+            docker run "$img" bash -c "cpanm -v -n LWP && cpanm -v -n local::lib"
+          fi
       - name: Run cpm install test
         run: |
           dir='${{ matrix.directory }}'
