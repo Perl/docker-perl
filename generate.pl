@@ -64,7 +64,7 @@ EOF
 chomp $docker_slim_run_install;
 
 my $docker_slim_run_purge = <<'EOF';
-savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
+savedPackages="ca-certificates curl make netbase zlib1g-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
@@ -87,21 +87,27 @@ my %builds;
 
 my %install_modules = (
   cpanm => {
-    name   => "App-cpanminus-1.7047",
-    url    => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
+    name => "App-cpanminus-1.7047",
+    url  => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
+
     # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
     sha256 => "963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5",
-    patch  => q[perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm],
+
+    patch_https =>
+      q[perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm],
+    patch_nolwp => q[perl -pi -E 's{try_lwp=>1}{try_lwp=>0}g' bin/cpanm],
   },
   iosocketssl => {
-    name   => "IO-Socket-SSL-2.085",
-    url    => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.085.tar.gz",
+    name => "IO-Socket-SSL-2.085",
+    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.085.tar.gz",
+
     # sha256 taken from http://www.cpan.org/authors/id/S/SU/SULLR/CHECKSUMS
     sha256 => "95b2f7c0628a7e246a159665fbf0620d0d7835e3a940f22d3fdd47c3aa799c2e",
   },
   netssleay => {
-    name   => "Net-SSLeay-1.94",
-    url    => "https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz",
+    name => "Net-SSLeay-1.94",
+    url  => "https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz",
+
     # sha256 taken from http://www.cpan.org/authors/id/C/CH/CHRISN/CHECKSUMS
     sha256 => "9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d",
   },
@@ -133,8 +139,8 @@ for my $release (@{$config->{releases}}) {
 
   my $patch;
   my $tarball = CPAN::Perl::Releases::MetaCPAN::perl_tarballs($release->{version})->{'tar.gz'};
-  my ($file) = File::Basename::fileparse($tarball);
-  my $url  = "https://cpan.metacpan.org/authors/id/$tarball";
+  my ($file)  = File::Basename::fileparse($tarball);
+  my $url     = "https://cpan.metacpan.org/authors/id/$tarball";
   if (-f "downloads/$file" && `sha256sum downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Qdownloads\/$file\E/) {
     print "Skipping download of $file, already current\n";
   }
@@ -169,9 +175,9 @@ for my $release (@{$config->{releases}}) {
       my $module = $install_modules{$name};
       $release->{"${name}_dist_$_"} = $module->{$_} for keys %$module;
     }
-    $release->{"cpm_dist_$_"}   = $cpm{$_} for keys %cpm;
+    $release->{"cpm_dist_$_"} = $cpm{$_} for keys %cpm;
 
-    $release->{extra_flags}    ||= '';
+    $release->{extra_flags} ||= '';
 
     $release->{image} = $build =~ /main/ ? 'buildpack-deps' : 'debian';
 
@@ -214,8 +220,10 @@ for my $release (@{$config->{releases}}) {
         $output =~ s/\{\{test\}\}/TEST_JOBS=\$(nproc) make test_harness/;
       }
       elsif ($release->{run_tests} eq "no") {
+
         # https://metacpan.org/pod/Devel::PatchPerl#CAVEAT
         $output =~ s/\{\{test\}\}/LD_LIBRARY_PATH=. .\/perl -Ilib -de0/;
+
         # https://metacpan.org/pod/distribution/perl/INSTALL#Building-a-shared-Perl-library
       }
       else {
@@ -327,7 +335,8 @@ RUN {{docker_slim_run_install}} \
     && curl -fLO {{cpanm_dist_url}} \
     && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} \
-    && {{cpanm_dist_patch}} \
+    && {{cpanm_dist_patch_https}} \
+    && {{cpanm_dist_patch_nolwp}} \
     && perl bin/cpanm . && cd /root \
     && curl -fLO '{{netssleay_dist_url}}' \
     && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
