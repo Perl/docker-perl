@@ -21,6 +21,7 @@ RUN true \
     && echo '963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5 *App-cpanminus-1.7047.tar.gz' | sha256sum --strict --check - \
     && tar -xzf App-cpanminus-1.7047.tar.gz && cd App-cpanminus-1.7047 \
     && perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm \
+    && perl -pi -E 's{try_lwp=>1}{try_lwp=>0}g' bin/cpanm \
     && perl bin/cpanm . && cd /root \
     && curl -fLO 'https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz' \
     && echo '9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d *Net-SSLeay-1.94.tar.gz' | sha256sum --strict --check - \
