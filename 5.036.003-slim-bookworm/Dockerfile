@@ -42,6 +42,7 @@ RUN apt-get update \
     && echo '963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5 *App-cpanminus-1.7047.tar.gz' | sha256sum --strict --check - \
     && tar -xzf App-cpanminus-1.7047.tar.gz && cd App-cpanminus-1.7047 \
     && perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm \
+    && perl -pi -E 's{try_lwp=>1}{try_lwp=>0}g' bin/cpanm \
     && perl bin/cpanm . && cd /root \
     && curl -fLO 'https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz' \
     && echo '9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d *Net-SSLeay-1.94.tar.gz' | sha256sum --strict --check - \
@@ -53,7 +54,7 @@ RUN apt-get update \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo 'e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && savedPackages="ca-certificates make netbase zlib1g-dev libssl-dev" \
+    && savedPackages="ca-certificates curl make netbase zlib1g-dev libssl-dev" \
     && apt-mark auto '.*' > /dev/null \
     && apt-mark manual $savedPackages \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
