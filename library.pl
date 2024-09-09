@@ -9,7 +9,7 @@ my %arches = (
 
   # https://github.com/docker-library/official-images/blob/master/library/debian
   default  => 'amd64, arm32v5, arm32v7, arm64v8, i386, mips64le, ppc64le, s390x',
-  bullseye => 'amd64, arm32v5, arm32v7, arm64v8, i386, ppc64le, s390x',
+  bullseye => 'amd64, arm32v7, arm64v8, i386',
   buster   => 'amd64, arm32v7, arm64v8, i386',
 );
 
