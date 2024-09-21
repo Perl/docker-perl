@@ -122,8 +122,9 @@ my %cpm = (
 die_with_sample unless defined $config->{releases};
 die_with_sample unless ref $config->{releases} eq "ARRAY";
 
-if (!-d "downloads") {
-  mkdir "downloads" or die "Couldn't create a downloads directory";
+my $downloads = $ENV{DOCKER_PERL_DOWNLOADS_DIR} // "downloads";
+if (!-d "$downloads") {
+  mkdir "$downloads" or die "Couldn't create a downloads directory at $downloads";
 }
 
 for my $build (@{$config->{builds}}) {
@@ -141,21 +142,21 @@ for my $release (@{$config->{releases}}) {
   my $tarball = CPAN::Perl::Releases::MetaCPAN::perl_tarballs($release->{version})->{'tar.gz'};
   my ($file)  = File::Basename::fileparse($tarball);
   my $url     = "https://cpan.metacpan.org/authors/id/$tarball";
-  if (-f "downloads/$file" && `sha256sum downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Qdownloads\/$file\E/) {
+  if (-f "$downloads/$file" && `sha256sum $downloads/$file` =~ /^\Q$release->{sha256}\E\s+\Q$downloads\/$file\E/) {
     print "Skipping download of $file, already current\n";
   }
   else {
     print "Downloading $url\n";
-    getstore($url, "downloads/$file");
+    getstore($url, "$downloads/$file");
   }
   {
-    my $dir = "downloads/perl-$release->{version}";
+    my $dir = "$downloads/perl-$release->{version}";
     qx{rm -fR $dir};
     mkdir $dir or die "Couldn't create $dir";
     qx{
-      tar -C "downloads" -xf $dir.tar.gz &&\
+      tar -C "$downloads" -xf $dir.tar.gz &&\
       cd $dir &&\
-      find . -exec chmod u+w {} + &&\
+      chown -R \$(id -u):\$(id -g) . &&\
       git init &&\
       git add . &&\
       git commit -m tmp
