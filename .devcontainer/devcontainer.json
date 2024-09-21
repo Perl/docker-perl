@@ -3,6 +3,9 @@
         "dockerfile": "./Dockerfile",
         "context": ".."
     },
+    "containerEnv": {
+        "DOCKER_PERL_DOWNLOADS_DIR": "/tmp/docker-perl-downloads"
+    },
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
             "configureZshAsDefaultShell": "true"
