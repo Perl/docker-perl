@@ -1,0 +1,31 @@
+{
+    "build": {
+        "dockerfile": "./Dockerfile",
+        "context": ".."
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "configureZshAsDefaultShell": "true"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/dhoeric/features/act:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "files.associations": {
+                    "cpanfile": "cpanfile"
+                }
+            },
+            "extensions": [
+                "bscan.perlnavigator",
+                "bayashi.perlcpanfile",
+                "stkb.rewrap",
+                "GitHub.vscode-pull-request-github",
+                "GitHub.vscode-github-actions"
+            ]
+        }
+    },
+    "remoteUser": "vscode"
+}
