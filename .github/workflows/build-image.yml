@@ -1,12 +1,11 @@
 name: Build and Test
 
 on:
-  push:
-    branches:
-      - '**'
-    tags-ignore:
-      - '*'
   pull_request:
+    paths:
+      - '**/Dockerfile'
+      - '!.devcontainer/Dockerfile'
+      - '**/DevelPatchPerl.patch'
 
 defaults:
   run:
@@ -18,46 +17,56 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
+
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
       - id: generate
         name: Enumerate Dockerfiles
         run: |
           matrix="$(dirname */Dockerfile | sort -rn | jq -csR 'rtrimstr("\n") | split("\n") | { directory: . }')"
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
   build-image:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     name: ${{ matrix.directory }}
+
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
       - name: Clone docker-library/official-images (for testing)
         run: |
           git clone --depth 1 --single-branch https://github.com/docker-library/official-images.git
+
       - name: Build image
         run: |
           docker version
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
-          docker build -t "$img" "$dir"
+          docker buildx build --progress=plain -t "$img" "$dir"
+
       - name: Inspect image creation and tag time
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           docker image inspect --format '{{.Created}}' "$img"
           docker image inspect --format '{{.Metadata.LastTagTime}}' "$img"
+
       - name: Run tests from docker-library/official-images
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           ./official-images/test/run.sh "$img"
+
       - name: Run HTTPS access test
         run: |
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           docker run "$img" perl -MHTTP::Tiny -E 'if (HTTP::Tiny->new->get("https://github.com")->{status} == 200) { exit 0 } exit 1'
+
       - name: Run cpanm install test
         run: |
           dir='${{ matrix.directory }}'
@@ -67,6 +76,7 @@ jobs:
             docker run "$img" cpanm -v Net::DNS@1.45_02
           fi
           docker run "$img" cpanm -v Mojolicious
+
       - name: Run cpanm no-lwp by default test
         run: |
           dir='${{ matrix.directory }}'
@@ -74,6 +84,7 @@ jobs:
           if [[ "$dir" != *"slim"* ]]; then
             docker run "$img" bash -c "cpanm -v -n LWP && cpanm -v -n local::lib"
           fi
+
       - name: Run cpm install test
         run: |
           dir='${{ matrix.directory }}'
@@ -83,13 +94,3 @@ jobs:
             docker run "$img" cpm install -v Net::DNS@1.45_02
           fi
           docker run "$img" cpm install -v Mojolicious
-      - name: COPY all to default WORKDIR
-        run: |
-          dir='${{ matrix.directory }}'
-          img="perl:${dir//,/-}"
-          mkdir -p test/lib
-          cat <<EOF >Dockerfile
-          FROM $img
-          COPY . .
-          EOF
-          docker build -f Dockerfile test
