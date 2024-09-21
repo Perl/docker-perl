@@ -3,32 +3,54 @@ name: Generate Dockerfiles/patches
 on:
   push:
     branches:
-      - '**'
+      - master
     tags-ignore:
       - '*'
   pull_request:
+    paths:
+      - cpanfile
+      - config.yml
+      - generate.pl
+      - .github/workflows/generate-dockerfiles-patches.yml
 
 jobs:
   generate:
     runs-on: ubuntu-latest
+
     steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
       - name: Set up git user name and email
         run: |
           git config --global user.email "test@github-actions"
           git config --global user.name "GitHub Actions"
-      - uses: actions/checkout@master
+
       - name: Install system perl and cpanm
         run: |
-          sudo apt-get install --no-install-recommends -y perl cpanminus
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends perl cpanminus
+
       - name: Install dependencies
         run: |
-          cpanm --quiet --installdeps --notest -L local .
+          sudo cpanm --quiet --installdeps --notest .
+
       - name: Generate Dockerfiles/patches
+        id: generate
         run: |
-          perl -Ilocal/lib/perl5 ./generate.pl
-      - name: Show diffstat (if any)
+          export DOCKER_PERL_DOWNLOADS_DIR=/tmp/docker-perl-downloads
+          perl ./generate.pl
+          /usr/bin/git --no-pager diff --stat > diffstat.txt
+          if [[ -s diffstat.txt ]]; then
+            echo has_extra_diffs=1 >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fail if there are extra diffs
+        if: steps.generate.outputs.has_extra_diffs
         run: |
-          git --no-pager diff --stat HEAD
-      - name: Show diffstat (if any)
-        run: |
-          git --no-pager diff --stat HEAD
+          echo "::error title=generate::Extra diffs found during generate"
+          echo "Additional changes found during generate - check diffstat below:"
+          echo "::group::diffstat"
+          cat diffstat.txt
+          echo "::endgroup::"
+          echo
+
+          exit 1
