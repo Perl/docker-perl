@@ -5,7 +5,7 @@ LABEL maintainer="Peter Martini <PeterCMartini@GMail.com>, Zak B. Elep <zakame@c
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://www.cpan.org/src/5.0/perl-5.32.1.tar.xz -o perl-5.32.1.tar.xz \
+    && curl -fL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.32.1.tar.xz -o perl-5.32.1.tar.xz \
     && echo '57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309 *perl-5.32.1.tar.xz' | sha256sum --strict --check - \
     && tar --strip-components=1 -xaf perl-5.32.1.tar.xz -C /usr/src/perl \
     && rm perl-5.32.1.tar.xz \
