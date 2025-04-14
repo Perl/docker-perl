@@ -8,8 +8,8 @@ options:
   threaded: "-Dusethreads"
 
 releases:
-  - version: 5.41.8
-    sha256:  2b13022a1b3e4648ffbdc51812e6b83cd7990095771989a236ec4edb2a55604e
+  - version: 5.41.10
+    sha256:  cfbba75fc0de73a287f5f3dcf0be28bdcd7600f6f5b027c4dc4ad6b873724ffa
     extra_flags: "-Dusedevel -Dversiononly=undef"
     debian_release:
       - bullseye
