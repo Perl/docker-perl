@@ -98,11 +98,11 @@ my %install_modules = (
     patch_nolwp => q[perl -pi -E 's{try_lwp=>1}{try_lwp=>0}g' bin/cpanm],
   },
   iosocketssl => {
-    name => "IO-Socket-SSL-2.085",
-    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.085.tar.gz",
+    name => "IO-Socket-SSL-2.091",
+    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.091.tar.gz",
 
     # sha256 taken from http://www.cpan.org/authors/id/S/SU/SULLR/CHECKSUMS
-    sha256 => "95b2f7c0628a7e246a159665fbf0620d0d7835e3a940f22d3fdd47c3aa799c2e",
+    sha256 => "c5996e7335912a5c99e06bdb47ff39df309a857cbd8fd2627a021cefdb53cf54",
   },
   netssleay => {
     name => "Net-SSLeay-1.94",
