@@ -24,7 +24,7 @@
             "extensions": [
                 "bscan.perlnavigator",
                 "bayashi.perlcpanfile",
-                "stkb.rewrap",
+                "dnut.rewrap-revived",
                 "GitHub.vscode-pull-request-github",
                 "GitHub.vscode-github-actions"
             ]
