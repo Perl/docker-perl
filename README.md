@@ -1,8 +1,10 @@
 docker-perl
 ===========
 
-This project is the source for the Docker perl repo; for more details,
-take a look at https://registry.hub.docker.com/_/perl/.
+This project is the source for the [Docker Library official perl images](https://registry.hub.docker.com/_/perl/),
+which builds the officially-supported perl versions ([perlpolicy](https://perldoc.perl.org/perlpolicy)) on 
+the officially supported Debian base images for several 
+architectures. These are reviewed and built by Docker Library.
 
 The structure of this repo is to use the full version ID of each Perl
 version, plus a comma separate list of extensions, followed by the
@@ -36,3 +38,8 @@ properly on a current base OS.  In those cases, perl -V will show the
 locally applied patches.  These changes should be limited to Configure
 rather than to code itself, and will be a cherry pick or back port of a
 patch from the mainline perl branch whenever possible.
+
+## See Also
+
+* [Docker Library FAQ](https://github.com/docker-library/faq?tab=readme-ov-file#what-do-you-mean-by-official)
+* 
