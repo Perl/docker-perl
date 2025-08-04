@@ -5,7 +5,7 @@ COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.30.3.tar.xz -o perl-5.30.3.tar.xz \
+    && curl -SL https://cpan.metacpan.org/authors/id/X/XS/XSAWYERX/perl-5.30.3.tar.xz -o perl-5.30.3.tar.xz \
     && echo '6967595f2e3f3a94544c35152f9a25e0cb8ea24ae45f4bf1882f2e33f4a400f4 *perl-5.30.3.tar.xz' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.30.3.tar.xz -C /usr/src/perl \
     && rm perl-5.30.3.tar.xz \
