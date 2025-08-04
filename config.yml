@@ -14,6 +14,8 @@ releases:
     debian_release:
       - bullseye
       - bookworm
+      - trixie
+      - sid
 
   - version: 5.38.4
     sha256:  fb888accf8b50b5180e91166e5153608be294c57c19878e95f7659c1f1f12758
