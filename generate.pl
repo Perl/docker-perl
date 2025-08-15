@@ -341,7 +341,7 @@ RUN {{docker_slim_run_install}} \
     && perl bin/cpanm . && cd /root \
     && curl -fLO '{{netssleay_dist_url}}' \
     && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
-    && cpanm --from $PWD {{netssleay_dist_name}}.tar.gz \
+    && cpanm --notest --from $PWD {{netssleay_dist_name}}.tar.gz \
     && curl -fLO '{{iosocketssl_dist_url}}' \
     && echo '{{iosocketssl_dist_sha256}} *{{iosocketssl_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && SSL_CERT_DIR=/etc/ssl/certs cpanm --from $PWD {{iosocketssl_dist_name}}.tar.gz \

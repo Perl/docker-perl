@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
@@ -25,15 +25,15 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.42.0.tar.gz -o perl-5.42.0.tar.gz \
-    && echo 'e093ef184d7f9a1b9797e2465296f55510adb6dab8842b0c3ed53329663096dc *perl-5.42.0.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.42.0.tar.gz -C /usr/src/perl \
-    && rm perl-5.42.0.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/H/HY/HYDAHY/perl-5.43.1.tar.gz -o perl-5.43.1.tar.gz \
+    && echo '5221ebf5badfbb943d168ff589ce93456a11f219105c930cc01e8a82a62adb65 *perl-5.43.1.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.43.1.tar.gz -C /usr/src/perl \
+    && rm perl-5.43.1.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local  -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -64,4 +64,4 @@ RUN apt-get update \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.42.0","-de0"]
+CMD ["perl5.43.1","-de0"]

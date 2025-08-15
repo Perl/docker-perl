@@ -1,39 +1,18 @@
-FROM debian:bookworm-slim
+FROM buildpack-deps:trixie
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       bzip2 \
-       ca-certificates \
-       # cpio \
-       curl \
-       dpkg-dev \
-       # file \
-       gcc \
-       # g++ \
-       # libbz2-dev \
-       # libdb-dev \
-       libc6-dev \
-       # libgdbm-dev \
-       # liblzma-dev \
-       make \
-       netbase \
-       patch \
-       # procps \
-       zlib1g-dev \
-       xz-utils \
-       libssl-dev \
-    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.42.0.tar.gz -o perl-5.42.0.tar.gz \
-    && echo 'e093ef184d7f9a1b9797e2465296f55510adb6dab8842b0c3ed53329663096dc *perl-5.42.0.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.42.0.tar.gz -C /usr/src/perl \
-    && rm perl-5.42.0.tar.gz \
+RUN true \
+    && curl -fL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.38.5.tar.gz -o perl-5.38.5.tar.gz \
+    && echo 'b7667d3ff309068852af7853910aaccec26c839d717402121b664ac705e07bfe *perl-5.38.5.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.38.5.tar.gz -C /usr/src/perl \
+    && rm perl-5.38.5.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Dusethreads -Duseshrplib -Dvendorprefix=/usr/local  -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local  -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -54,14 +33,10 @@ RUN apt-get update \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo 'e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && savedPackages="ca-certificates curl make netbase zlib1g-dev libssl-dev" \
-    && apt-mark auto '.*' > /dev/null \
-    && apt-mark manual $savedPackages \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
+    && true \
     && rm -fr /root/.cpanm /root/Net-SSLeay-1.94* /root/IO-Socket-SSL-2.091* /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.42.0","-de0"]
+CMD ["perl5.38.5","-de0"]

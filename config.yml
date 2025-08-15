@@ -8,27 +8,31 @@ options:
   threaded: "-Dusethreads"
 
 releases:
-  - version: 5.41.13
-    sha256:  394f23c7731f6e83bde81b4995884fe2dd51e6867a57a0b53bd29b11c6a3a514
+  - version: 5.43.1
+    sha256:  5221ebf5badfbb943d168ff589ce93456a11f219105c930cc01e8a82a62adb65
     extra_flags: "-Dusedevel -Dversiononly=undef"
     debian_release:
       - bullseye
       - bookworm
+      - trixie
 
-  - version: 5.38.4
-    sha256:  fb888accf8b50b5180e91166e5153608be294c57c19878e95f7659c1f1f12758
+  - version: 5.38.5
+    sha256:  b7667d3ff309068852af7853910aaccec26c839d717402121b664ac705e07bfe
     debian_release:
       - bullseye
       - bookworm
+      - trixie
 
-  - version: 5.40.2
-    sha256:  10d4647cfbb543a7f9ae3e5f6851ec49305232ea7621aed24c7cfbb0bef4b70d
+  - version: 5.40.3
+    sha256:  4c155b4e6160682b38919b55ac319081b898db11857cf18a7d9ffed2648ccaff
     debian_release:
       - bullseye
       - bookworm
+      - trixie
 
   - version: 5.42.0
     sha256: e093ef184d7f9a1b9797e2465296f55510adb6dab8842b0c3ed53329663096dc
     debian_release:
       - bullseye
       - bookworm
+      - trixie
