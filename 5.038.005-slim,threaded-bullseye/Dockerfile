@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
@@ -25,10 +25,10 @@ RUN apt-get update \
        zlib1g-dev \
        xz-utils \
        libssl-dev \
-    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.42.0.tar.gz -o perl-5.42.0.tar.gz \
-    && echo 'e093ef184d7f9a1b9797e2465296f55510adb6dab8842b0c3ed53329663096dc *perl-5.42.0.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.42.0.tar.gz -C /usr/src/perl \
-    && rm perl-5.42.0.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.38.5.tar.gz -o perl-5.38.5.tar.gz \
+    && echo 'b7667d3ff309068852af7853910aaccec26c839d717402121b664ac705e07bfe *perl-5.38.5.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.38.5.tar.gz -C /usr/src/perl \
+    && rm perl-5.38.5.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -64,4 +64,4 @@ RUN apt-get update \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.42.0","-de0"]
+CMD ["perl5.38.5","-de0"]

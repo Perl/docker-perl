@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
