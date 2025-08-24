@@ -1,13 +1,34 @@
-FROM buildpack-deps:bullseye
+FROM debian:bullseye-slim
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
-RUN true \
-    && curl -fL https://cpan.metacpan.org/authors/id/H/HY/HYDAHY/perl-5.43.1.tar.gz -o perl-5.43.1.tar.gz \
-    && echo '5221ebf5badfbb943d168ff589ce93456a11f219105c930cc01e8a82a62adb65 *perl-5.43.1.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.43.1.tar.gz -C /usr/src/perl \
-    && rm perl-5.43.1.tar.gz \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       bzip2 \
+       ca-certificates \
+       # cpio \
+       curl \
+       dpkg-dev \
+       # file \
+       gcc \
+       # g++ \
+       # libbz2-dev \
+       # libdb-dev \
+       libc6-dev \
+       # libgdbm-dev \
+       # liblzma-dev \
+       make \
+       netbase \
+       patch \
+       # procps \
+       zlib1g-dev \
+       xz-utils \
+       libssl-dev \
+    && curl -fL https://cpan.metacpan.org/authors/id/E/ET/ETHER/perl-5.43.2.tar.gz -o perl-5.43.2.tar.gz \
+    && echo '202dc989a29e461bef175dc23ac0ba0d7eef49ea10e1fefe696f19ede210dc29 *perl-5.43.2.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.43.2.tar.gz -C /usr/src/perl \
+    && rm perl-5.43.2.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -33,10 +54,14 @@ RUN true \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
     && echo 'e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && true \
+    && savedPackages="ca-certificates curl make netbase zlib1g-dev libssl-dev" \
+    && apt-mark auto '.*' > /dev/null \
+    && apt-mark manual $savedPackages \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
     && rm -fr /root/.cpanm /root/Net-SSLeay-1.94* /root/IO-Socket-SSL-2.091* /usr/src/perl /usr/src/App-cpanminus-1.7047* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.43.1","-de0"]
+CMD ["perl5.43.2","-de0"]
