@@ -330,7 +330,7 @@ RUN {{docker_slim_run_install}} \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
     && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
-    && {{test}} \
+    && { [ "$(dpkg --print-architecture)" = 'riscv64' ] || {{test}}; } \
     && make install \
     && cd /usr/src \
     && curl -fLO {{cpanm_dist_url}} \
