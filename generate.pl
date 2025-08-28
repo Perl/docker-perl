@@ -338,7 +338,7 @@ RUN {{docker_slim_run_install}} \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} \
     && {{cpanm_dist_patch_https}} \
     && {{cpanm_dist_patch_nolwp}} \
-    && perl bin/cpanm . && cd /root \
+    && perl bin/cpanm --notest . && cd /root \
     && curl -fLO '{{netssleay_dist_url}}' \
     && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && cpanm --notest --from $PWD {{netssleay_dist_name}}.tar.gz \
