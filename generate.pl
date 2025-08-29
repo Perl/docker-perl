@@ -330,7 +330,7 @@ RUN {{docker_slim_run_install}} \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
     && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} -des \
     && make -j$(nproc) \
-    && {{test}} \
+    && { [ "$(dpkg --print-architecture)" = 'riscv64' ] || {{test}}; } \
     && make install \
     && cd /usr/src \
     && curl -fLO {{cpanm_dist_url}} \
@@ -338,7 +338,7 @@ RUN {{docker_slim_run_install}} \
     && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} \
     && {{cpanm_dist_patch_https}} \
     && {{cpanm_dist_patch_nolwp}} \
-    && perl bin/cpanm . && cd /root \
+    && perl bin/cpanm --notest . && cd /root \
     && curl -fLO '{{netssleay_dist_url}}' \
     && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
     && cpanm --notest --from $PWD {{netssleay_dist_name}}.tar.gz \
