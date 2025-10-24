@@ -1,6 +1,6 @@
 FROM buildpack-deps:bullseye
 
-# No DevelPatchPerl.patch generated
+COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN true \
