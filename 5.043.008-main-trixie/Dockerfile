@@ -1,13 +1,13 @@
-FROM buildpack-deps:bookworm
+FROM buildpack-deps:trixie
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://cpan.metacpan.org/authors/id/C/CO/CORION/perl-5.43.7.tar.gz -o perl-5.43.7.tar.gz \
-    && echo 'd8aa3057fab477b779f6658e42471836cc05f6bcbfd8416959e2f8d177a47d0b *perl-5.43.7.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.43.7.tar.gz -C /usr/src/perl \
-    && rm perl-5.43.7.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/H/HY/HYDAHY/perl-5.43.8.tar.gz -o perl-5.43.8.tar.gz \
+    && echo '44bc66a00ca494b66ed3f5221ad8b89271d8dca397a1fd0f5f6d0f047db0a2ca *perl-5.43.8.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.43.8.tar.gz -C /usr/src/perl \
+    && rm perl-5.43.8.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -39,4 +39,4 @@ RUN true \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.43.7","-de0"]
+CMD ["perl5.43.8","-de0"]
