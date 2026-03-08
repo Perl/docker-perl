@@ -87,22 +87,22 @@ my %builds;
 
 my %install_modules = (
   cpanm => {
-    name => "App-cpanminus-1.7047",
-    url  => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7047.tar.gz",
+    name => "App-cpanminus-1.7048",
+    url  => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7048.tar.gz",
 
     # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
-    sha256 => "963e63c6e1a8725ff2f624e9086396ae150db51dd0a337c3781d09a994af05a5",
+    sha256 => "59b60907ab9fa4f72ca2004fbe6054911439ae9a906890b4d842a87b25f20f3c",
 
     patch_https =>
       q[perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm],
     patch_nolwp => q[perl -pi -E 's{try_lwp=>1}{try_lwp=>0}g' bin/cpanm],
   },
   iosocketssl => {
-    name => "IO-Socket-SSL-2.091",
-    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.091.tar.gz",
+    name => "IO-Socket-SSL-2.098",
+    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.098.tar.gz",
 
     # sha256 taken from http://www.cpan.org/authors/id/S/SU/SULLR/CHECKSUMS
-    sha256 => "c5996e7335912a5c99e06bdb47ff39df309a857cbd8fd2627a021cefdb53cf54",
+    sha256 => "b38473be20256b1a06447dd6769ad162bfad6a258234ed2c7e2e1819c16c4df7",
   },
   netssleay => {
     name => "Net-SSLeay-1.94",
@@ -115,8 +115,8 @@ my %install_modules = (
 
 # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
 my %cpm = (
-  url    => "https://raw.githubusercontent.com/skaji/cpm/0.997017/cpm",
-  sha256 => "e3931a7d994c96f9c74b97d1b5b75a554fc4f06eadef1eca26ecc0bdcd1f2d11",
+  url    => "https://raw.githubusercontent.com/skaji/cpm/0.998003/cpm",
+  sha256 => "6a27e528cf37635773e738db36c4b4ab4345d5a9d00b8cbd2f2dc01abc73177d",
 );
 
 die_with_sample unless defined $config->{releases};
