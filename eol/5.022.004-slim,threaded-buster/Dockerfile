@@ -25,7 +25,7 @@ RUN apt-get update \
        # procps \
        # zlib1g-dev \
        xz-utils \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.22.4.tar.bz2 -o perl-5.22.4.tar.bz2 \
+    && curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.22.4.tar.bz2 -o perl-5.22.4.tar.bz2 \
     && echo '8b3122046d1186598082d0e6da53193b045e85e3505e7d37ee0bdd0bdb539b71 *perl-5.22.4.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.22.4.tar.bz2 -C /usr/src/perl \
     && rm perl-5.22.4.tar.bz2 \
