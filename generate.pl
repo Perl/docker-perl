@@ -87,11 +87,11 @@ my %builds;
 
 my %install_modules = (
   cpanm => {
-    name => "App-cpanminus-1.7048",
-    url  => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7048.tar.gz",
+    name => "App-cpanminus-1.7049",
+    url  => "https://www.cpan.org/authors/id/M/MI/MIYAGAWA/App-cpanminus-1.7049.tar.gz",
 
     # sha256 taken from http://www.cpan.org/authors/id/M/MI/MIYAGAWA/CHECKSUMS
-    sha256 => "59b60907ab9fa4f72ca2004fbe6054911439ae9a906890b4d842a87b25f20f3c",
+    sha256 => "b9ffb88e62a06aa91bd7d5a28ef6bdbb942608aea90e3969aa29b33640035214",
 
     patch_https =>
       q[perl -pi -E 's{http://(www\.cpan\.org|backpan\.perl\.org|cpan\.metacpan\.org|fastapi\.metacpan\.org|cpanmetadb\.plackperl\.org)}{https://$1}g' bin/cpanm],
@@ -105,11 +105,11 @@ my %install_modules = (
     sha256 => "b38473be20256b1a06447dd6769ad162bfad6a258234ed2c7e2e1819c16c4df7",
   },
   netssleay => {
-    name => "Net-SSLeay-1.94",
-    url  => "https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz",
+    name => "Net-SSLeay-1.96",
+    url  => "https://www.cpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.96.tar.gz",
 
     # sha256 taken from http://www.cpan.org/authors/id/C/CH/CHRISN/CHECKSUMS
-    sha256 => "9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d",
+    sha256 => "ab213691685fb2a576c669cbc8d9266f8165a31563ad15b7c4030b94adfc0753",
   },
 );
 
