@@ -1,18 +1,18 @@
-FROM buildpack-deps:trixie
+FROM buildpack-deps:bullseye
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://cpan.metacpan.org/authors/id/E/EH/EHERMAN/perl-5.43.9.tar.gz -o perl-5.43.9.tar.gz \
-    && echo 'aec72b03806f2003f97e86baf28a22a20cce912d618afadf3df1f005cda5b235 *perl-5.43.9.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.43.9.tar.gz -C /usr/src/perl \
-    && rm perl-5.43.9.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.42.2.tar.gz -o perl-5.42.2.tar.gz \
+    && echo '9384e8deb75b7b1695e5637971b752281aaecd025a3d5d4734d33c1d0adfee47 *perl-5.42.2.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.42.2.tar.gz -C /usr/src/perl \
+    && rm perl-5.42.2.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
     && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
-    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local -Dusedevel -Dversiononly=undef -des \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" -Duseshrplib -Dvendorprefix=/usr/local  -des \
     && make -j$(nproc) \
     && TEST_JOBS=$(nproc) make test_harness \
     && make install \
@@ -39,4 +39,4 @@ RUN true \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.43.9","-de0"]
+CMD ["perl5.42.2","-de0"]
