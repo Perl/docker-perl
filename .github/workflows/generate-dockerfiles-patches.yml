@@ -11,6 +11,11 @@ on:
       - cpanfile
       - config.yml
       - generate.pl
+      - library.pl
+      - Dockerfile.alpine.template
+      - Dockerfile.debian.template
+      - musl-stack-size.patch
+      - t/**
       - .github/workflows/generate-dockerfiles-patches.yml
 
 jobs:
@@ -38,19 +43,27 @@ jobs:
         run: |
           export DOCKER_PERL_DOWNLOADS_DIR=/tmp/docker-perl-downloads
           perl ./generate.pl
-          /usr/bin/git --no-pager diff --stat > diffstat.txt
-          if [[ -s diffstat.txt ]]; then
+          /usr/bin/git --no-pager diff --stat > /tmp/diffstat.txt
+          /usr/bin/git status --porcelain > /tmp/status.txt
+          if [[ -s /tmp/diffstat.txt || -s /tmp/status.txt ]]; then
             echo has_extra_diffs=1 >> $GITHUB_OUTPUT
           fi
 
       - name: Fail if there are extra diffs
         if: steps.generate.outputs.has_extra_diffs
         run: |
-          echo "::error title=generate::Extra diffs found during generate"
-          echo "Additional changes found during generate - check diffstat below:"
-          echo "::group::diffstat"
-          cat diffstat.txt
+          echo "::error title=generate::Extra diffs or untracked files found during generate"
+          echo "Additional changes found during generate. Committed content must match a fresh generate.pl run exactly, including new files. Check below:"
+          echo "::group::diffstat (modified tracked files)"
+          cat /tmp/diffstat.txt
+          echo "::endgroup::"
+          echo "::group::status (untracked/uncommitted files, e.g. missing git add)"
+          cat /tmp/status.txt
           echo "::endgroup::"
           echo
 
           exit 1
+
+      - name: Run alpine regression checks
+        run: |
+          prove -v t/*.t

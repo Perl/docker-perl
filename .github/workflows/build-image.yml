@@ -1,3 +1,11 @@
+# CI matrix is auto-generated from any directory containing a Dockerfile via
+# `dirname */Dockerfile`. Adding a new variant directory (debian or alpine)
+# requires no edits here — the matrix picks it up on the next push.
+#
+# The slim-gating logic in the cpanm/cpm/Net::DNS test steps (predicated on
+# `[[ "$dir" == *"slim"* ]]`) correctly skips slim variants and includes
+# alpine variants (alpine retains the full build toolchain at runtime,
+# parallel to debian-main).
 name: Build and Test
 
 on:
@@ -5,7 +13,7 @@ on:
     paths:
       - '**/Dockerfile'
       - '!.devcontainer/Dockerfile'
-      - '**/DevelPatchPerl.patch'
+      - '**/*.patch'
 
 defaults:
   run:
@@ -31,6 +39,7 @@ jobs:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     name: ${{ matrix.directory }}
 
@@ -82,7 +91,7 @@ jobs:
           dir='${{ matrix.directory }}'
           img="perl:${dir//,/-}"
           if [[ "$dir" != *"slim"* ]]; then
-            docker run "$img" bash -c "cpanm -v -n LWP && cpanm -v -n local::lib"
+            docker run "$img" sh -c "cpanm -v -n LWP && cpanm -v -n local::lib"
           fi
 
       - name: Run cpm install test
