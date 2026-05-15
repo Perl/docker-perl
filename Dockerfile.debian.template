@@ -1,0 +1,42 @@
+FROM {{image}}:{{tag}}
+
+{{docker_copy_perl_patch}}
+WORKDIR /usr/src/perl
+
+RUN {{docker_slim_run_install}} \
+    && curl -fL {{url}} -o perl-{{version}}.tar.gz \
+    && echo '{{sha256}} *perl-{{version}}.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-{{version}}.tar.gz -C /usr/src/perl \
+    && rm perl-{{version}}.tar.gz \
+    && cat *.patch | patch -p1 \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
+    && archFlag="$([ "$archBits" = '64' ] && echo '-Duse64bitall' || echo '-Duse64bitint')" \
+    && ./Configure -Darchname="$gnuArch" "$archFlag" {{args}} {{extra_flags}} -des \
+    && make -j$(nproc) \
+    && {{test}} \
+    && make install \
+    && cd /usr/src \
+    && curl -fLO {{cpanm_dist_url}} \
+    && echo '{{cpanm_dist_sha256}} *{{cpanm_dist_name}}.tar.gz' | sha256sum --strict --check - \
+    && tar -xzf {{cpanm_dist_name}}.tar.gz && cd {{cpanm_dist_name}} \
+    && {{cpanm_dist_patch_https}} \
+    && {{cpanm_dist_patch_nolwp}} \
+    && perl bin/cpanm . && cd /root \
+    && curl -fLO '{{netssleay_dist_url}}' \
+    && echo '{{netssleay_dist_sha256}} *{{netssleay_dist_name}}.tar.gz' | sha256sum --strict --check - \
+    && cpanm --notest --from $PWD {{netssleay_dist_name}}.tar.gz \
+    && curl -fLO '{{iosocketssl_dist_url}}' \
+    && echo '{{iosocketssl_dist_sha256}} *{{iosocketssl_dist_name}}.tar.gz' | sha256sum --strict --check - \
+    && SSL_CERT_DIR=/etc/ssl/certs cpanm --from $PWD {{iosocketssl_dist_name}}.tar.gz \
+    && curl -fL {{cpm_dist_url}} -o /usr/local/bin/cpm \
+    # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
+    && echo '{{cpm_dist_sha256}} */usr/local/bin/cpm' | sha256sum --strict --check - \
+    && chmod +x /usr/local/bin/cpm \
+    && {{docker_slim_run_purge}} \
+    && rm -fr /root/.cpanm /root/{{netssleay_dist_name}}* /root/{{iosocketssl_dist_name}}* /usr/src/perl /usr/src/{{cpanm_dist_name}}* /tmp/* \
+    && cpanm --version && cpm --version
+
+WORKDIR /usr/src/app
+
+CMD ["perl{{version}}","-de0"]
