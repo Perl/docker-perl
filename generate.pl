@@ -98,11 +98,11 @@ my %install_modules = (
     patch_nolwp => q[perl -pi -E 's{try_lwp=>1}{try_lwp=>0}g' bin/cpanm],
   },
   iosocketssl => {
-    name => "IO-Socket-SSL-2.098",
-    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.098.tar.gz",
+    name => "IO-Socket-SSL-2.099",
+    url  => "https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.099.tar.gz",
 
     # sha256 taken from http://www.cpan.org/authors/id/S/SU/SULLR/CHECKSUMS
-    sha256 => "b38473be20256b1a06447dd6769ad162bfad6a258234ed2c7e2e1819c16c4df7",
+    sha256 => "a0be800ff4852b1567ee5500e772417ad7a360abff80c01b5b875c15d44be832",
   },
   netssleay => {
     name => "Net-SSLeay-1.96",
@@ -115,8 +115,8 @@ my %install_modules = (
 
 # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
 my %cpm = (
-  url    => "https://raw.githubusercontent.com/skaji/cpm/0.998003/cpm",
-  sha256 => "6a27e528cf37635773e738db36c4b4ab4345d5a9d00b8cbd2f2dc01abc73177d",
+  url    => "https://raw.githubusercontent.com/skaji/cpm/v1.1.4/cpm",
+  sha256 => "6f5ae6d0e25ba20f768b8856ea61481da9d142a04629d658025011c76d3bbc3f",
 );
 
 die_with_sample unless defined $config->{releases};
