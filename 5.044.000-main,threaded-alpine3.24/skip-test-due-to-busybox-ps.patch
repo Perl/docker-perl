@@ -1,0 +1,13 @@
+diff --git a/t/op/magic.t b/t/op/magic.t
+index 929a746..dff2561 100644
+--- a/t/op/magic.t
++++ b/t/op/magic.t
+@@ -406,7 +406,7 @@ EOP
+ # argv[0] assignment and by calling prctl()
+ {
+   SKIP: {
+-    skip "We don't have prctl() here, or we're on Android", 2 unless $Config{d_prctl_set_name} && $^O ne 'android';
++    skip "Skip test to avoid external ps(1) dependency", 2;
+ 
+     # We don't really need these tests. prctl() is tested in the
+     # Kernel, but test it anyway for our sanity. If something doesn't
