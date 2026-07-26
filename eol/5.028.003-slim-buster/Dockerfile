@@ -25,7 +25,7 @@ RUN apt-get update \
        # procps \
        # zlib1g-dev \
        xz-utils \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.28.3.tar.xz -o perl-5.28.3.tar.xz \
+    && curl -SL https://cpan.metacpan.org/authors/id/X/XS/XSAWYERX/perl-5.28.3.tar.xz -o perl-5.28.3.tar.xz \
     && echo '77dc1ddf541643af14d585867d3d0741cce45d0dbe8f1467024e63165d9e2fc5 *perl-5.28.3.tar.xz' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.28.3.tar.xz -C /usr/src/perl \
     && rm perl-5.28.3.tar.xz \

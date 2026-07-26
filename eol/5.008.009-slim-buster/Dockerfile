@@ -25,7 +25,7 @@ RUN apt-get update \
        # procps \
        # zlib1g-dev \
        xz-utils \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2 -o perl-5.8.9.tar.bz2 \
+    && curl -SL https://cpan.metacpan.org/authors/id/N/NW/NWCLARK/perl-5.8.9.tar.bz2 -o perl-5.8.9.tar.bz2 \
     && echo '1097fbcd48ceccb2bc735d119c9db399a02a8ab9f7dc53e29e47e6a8d0d72e79 *perl-5.8.9.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.8.9.tar.bz2 -C /usr/src/perl \
     && rm perl-5.8.9.tar.bz2 \

@@ -5,7 +5,7 @@ COPY *.patch /usr/src/perl/
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -SL https://www.cpan.org/src/5.0/perl-5.20.3.tar.bz2 -o perl-5.20.3.tar.bz2 \
+    && curl -SL https://cpan.metacpan.org/authors/id/S/SH/SHAY/perl-5.20.3.tar.bz2 -o perl-5.20.3.tar.bz2 \
     && echo '1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b *perl-5.20.3.tar.bz2' | sha256sum -c - \
     && tar --strip-components=1 -xaf perl-5.20.3.tar.bz2 -C /usr/src/perl \
     && rm perl-5.20.3.tar.bz2 \
