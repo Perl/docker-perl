@@ -14,7 +14,6 @@ releases:
     run_tests: serial
     debian_release:
       - stretch
-      - buster
 
   - version: 5.10.1
     sha256:  9385f2c8c2ca8b1dc4a7c31903f1f8dc8f2ba867dc2a9e5c93012ed6b564e826
@@ -22,7 +21,6 @@ releases:
     run_tests: no
     debian_release:
       - stretch
-      - buster
 
   - version: 5.12.5
     sha256:  10749417fd3010aae320a34181ad4cd6a4855c1fc63403b87fa4d630b18e966c
@@ -30,7 +28,6 @@ releases:
     run_tests: serial
     debian_release:
       - stretch
-      - buster
 
   - version: 5.14.4
     sha256:  eece8c2b0d491bf6f746bd1f4f1bb7ce26f6b98e91c54690c617d7af38964745
@@ -38,7 +35,6 @@ releases:
     run_tests: no
     debian_release:
       - stretch
-      - buster
 
   - version: 5.16.3
     sha256:  bb7bc735e6813b177dcfccd480defcde7eddefa173b5967eac11babd1bfa98e8
@@ -46,7 +42,6 @@ releases:
     run_tests: no
     debian_release:
       - stretch
-      - buster
 
   - version: 5.18.4
     sha256:  1fb4d27b75cd244e849f253320260efe1750641aaff4a18ce0d67556ff1b96a5
@@ -54,59 +49,50 @@ releases:
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
-      - buster
 
   - version: 5.20.3
     sha256:  1b40068166c242e34a536836286e70b78410602a80615143301e52aa2901493b
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
-      - buster
 
   - version: 5.22.4
     sha256:  8b3122046d1186598082d0e6da53193b045e85e3505e7d37ee0bdd0bdb539b71
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
-      - buster
 
   - version: 5.24.4
     sha256:  e34ff38c54857f431f37403b757267c9998152bf46b5c750b462f62461279b10
     run_tests: no # buster: Failed test 'Trapped error when attempting to write to knobbled GDBM_File'
     debian_release:
       - stretch
-      - buster
 
   - version: 5.26.3
     sha256:  9ff35a613213f29ab53975141af6825ae7d4408895538cac0922e47ab92a1477
     debian_release:
       - stretch
-      - buster
 
   - version: 5.28.3
     sha256:  77dc1ddf541643af14d585867d3d0741cce45d0dbe8f1467024e63165d9e2fc5
     type:    xz
     debian_release:
       - stretch
-      - buster
 
   - version: 5.30.3
     sha256:  6967595f2e3f3a94544c35152f9a25e0cb8ea24ae45f4bf1882f2e33f4a400f4
     type:    xz
     debian_release:
-      - buster
       - bullseye
 
   - version: 5.32.1
     sha256:  57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309
     type:    xz
     debian_release:
-      - buster
       - bullseye
 
   - version: 5.34.3
     sha256:  5b12f62863332b2a5f54102af9cdf8c010877e4bf3294911edbd594b2a1e8ede
     debian_release:
-      - buster
       - bullseye
 
