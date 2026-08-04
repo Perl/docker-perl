@@ -16,15 +16,15 @@ releases:
       - bookworm
       - trixie
 
-  - version: 5.40.4
-    sha256:  3258564b644dc912f7367c4f49d6df77a855cdef9305c50801e03d09d39381af
+  - version: 5.40.5
+    sha256:  09d926ae2d1b277c3bce62054c41da47c981380d719c41cf980b67945cc581ed
     debian_release:
       - bullseye
       - bookworm
       - trixie
 
-  - version: 5.42.2
-    sha256: 9384e8deb75b7b1695e5637971b752281aaecd025a3d5d4734d33c1d0adfee47
+  - version: 5.42.3
+    sha256: 1137740985837b5cdf15f0cfab932279dcb4352f912fed6fc144e8b4f0823627
     debian_release:
       - bullseye
       - bookworm
