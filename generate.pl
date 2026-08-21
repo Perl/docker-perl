@@ -115,8 +115,8 @@ my %install_modules = (
 
 # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
 my %cpm = (
-  url    => "https://raw.githubusercontent.com/skaji/cpm/v1.1.4/cpm",
-  sha256 => "6f5ae6d0e25ba20f768b8856ea61481da9d142a04629d658025011c76d3bbc3f",
+  url    => "https://raw.githubusercontent.com/skaji/cpm/v1.1.5/cpm",
+  sha256 => "2e7cdae8f84a673384d40e2486aa236955b7f69547d66f9920564c05b330f9e0",
 );
 
 die_with_sample unless defined $config->{releases};
