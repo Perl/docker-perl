@@ -7,32 +7,46 @@ options:
   common: "-Duseshrplib -Dvendorprefix=/usr/local"
   threaded: "-Dusethreads"
 
+# Per-OS-family build restrictions. When a family appears here, only the
+# listed builds are emitted for entries with that family. Default (key
+# absent) = all builds apply. Empty list (e.g. `foo: []`) = skip entirely.
+build_constraints:
+  alpine: [main]   # no slim on alpine — alpine is already minimal
+
 releases:
   - version: 5.45.2
     sha256:  4ee6767d0f9e02899dc930aa6c0deeb87f6c6c92e53a796e4ccf5414afa7938f
     extra_flags: "-Dusedevel -Dversiononly=undef"
-    debian_release:
-      - bullseye
-      - bookworm
-      - trixie
+    os_release:
+      - { family: debian, tag: bullseye }
+      - { family: debian, tag: bookworm }
+      - { family: debian, tag: trixie }
+      - { family: alpine, tag: alpine3.23 }
+      - { family: alpine, tag: alpine3.24 }
 
   - version: 5.40.5
     sha256:  09d926ae2d1b277c3bce62054c41da47c981380d719c41cf980b67945cc581ed
-    debian_release:
-      - bullseye
-      - bookworm
-      - trixie
+    os_release:
+      - { family: debian, tag: bullseye }
+      - { family: debian, tag: bookworm }
+      - { family: debian, tag: trixie }
+      - { family: alpine, tag: alpine3.23 }
+      - { family: alpine, tag: alpine3.24 }
 
   - version: 5.42.3
     sha256: 1137740985837b5cdf15f0cfab932279dcb4352f912fed6fc144e8b4f0823627
-    debian_release:
-      - bullseye
-      - bookworm
-      - trixie
+    os_release:
+      - { family: debian, tag: bullseye }
+      - { family: debian, tag: bookworm }
+      - { family: debian, tag: trixie }
+      - { family: alpine, tag: alpine3.23 }
+      - { family: alpine, tag: alpine3.24 }
 
   - version: 5.44.0
     sha256: 3b855066b92491cb40e86affb1ca57d1a388aa43e51b91c7806a32c2f65f96c3
-    debian_release:
-      - bullseye
-      - bookworm
-      - trixie
+    os_release:
+      - { family: debian, tag: bullseye }
+      - { family: debian, tag: bookworm }
+      - { family: debian, tag: trixie }
+      - { family: alpine, tag: alpine3.23 }
+      - { family: alpine, tag: alpine3.24 }
