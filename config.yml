@@ -12,27 +12,23 @@ releases:
     sha256:  4ee6767d0f9e02899dc930aa6c0deeb87f6c6c92e53a796e4ccf5414afa7938f
     extra_flags: "-Dusedevel -Dversiononly=undef"
     debian_release:
-      - bullseye
       - bookworm
       - trixie
 
   - version: 5.40.5
     sha256:  09d926ae2d1b277c3bce62054c41da47c981380d719c41cf980b67945cc581ed
     debian_release:
-      - bullseye
       - bookworm
       - trixie
 
   - version: 5.42.3
     sha256: 1137740985837b5cdf15f0cfab932279dcb4352f912fed6fc144e8b4f0823627
     debian_release:
-      - bullseye
       - bookworm
       - trixie
 
   - version: 5.44.0
     sha256: 3b855066b92491cb40e86affb1ca57d1a388aa43e51b91c7806a32c2f65f96c3
     debian_release:
-      - bullseye
       - bookworm
       - trixie
