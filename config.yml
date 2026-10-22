@@ -14,6 +14,7 @@ releases:
     debian_release:
       - bookworm
       - trixie
+      - forky
 
   - version: 5.40.5
     sha256:  09d926ae2d1b277c3bce62054c41da47c981380d719c41cf980b67945cc581ed
