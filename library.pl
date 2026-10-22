@@ -11,7 +11,12 @@ my %arches = (
   default  => 'amd64, arm32v5, arm32v7, arm64v8, ppc64le, riscv64, s390x',
   bookworm => 'amd64, arm32v7, arm64v8, i386, ppc64le',
   bullseye => 'amd64, arm32v7, arm64v8, i386',
+  forky    => 'amd64, arm32v7, arm64v8, ppc64le, riscv64, s390x',
 );
+
+# Debian testing release: this only gets Debian-suffixed tags, so the
+# unsuffixed tags (e.g. devel, 5.45, slim) stay on a Debian stable release
+my $testing = 'forky';
 
 print <<"END_HEADER";
 Maintainers: Peter Martini <PeterCMartini\@GMail.com> (\@PeterMartini),
@@ -35,11 +40,14 @@ sub entry {
   my @versionAliases = ();
 
   my @version = split /[.]/, $version;
-  for my $i (reverse 0 .. @version - 1) {
+  my $devel   = Perl::Version->new($version)->version % 2;
+
+  # dev releases don't get the major-only alias (e.g. 5), which is for stable
+  for my $i (reverse(($devel ? 1 : 0) .. @version - 1)) {
     push @versionAliases, join '.', @version[0 .. $i];
   }
 
-  if (Perl::Version->new($version)->version % 2) {
+  if ($devel) {
     push @versionAliases, 'devel';
   }
   else {
@@ -52,7 +60,7 @@ sub entry {
 
   my @debianAliases = suffix $debian, @buildAliases;
 
-  my @aliases = (($eol ? () : @buildAliases), @debianAliases);
+  my @aliases = (($eol || $debian eq $testing ? () : @buildAliases), @debianAliases);
 
   state %latest = ();
   @aliases = grep { !defined $latest{$_} } @aliases;
@@ -73,7 +81,8 @@ sub release {
   my @builds = (@$builds, map {"$_,threaded"} @$builds);
 
   for my $build (@builds) {
-    for my $debian (reverse @{$release->{debian_release}}) {
+    my @debian = reverse @{$release->{debian_release}};
+    for my $debian ((grep { $_ ne $testing } @debian), (grep { $_ eq $testing } @debian)) {
       entry $release->{version}, $build, $debian, $eol;
     }
   }
