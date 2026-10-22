@@ -8,8 +8,8 @@ options:
   threaded: "-Dusethreads"
 
 releases:
-  - version: 5.45.3
-    sha256:  f8aac25c3dc34abbaf0d84da132913f726c7faa27906b460cc442da417c2fdac
+  - version: 5.45.4
+    sha256:  9ad6ff5750dd512437af86f260365186d925a4fcd5002a1d88b8385df5938ea4
     extra_flags: "-Dusedevel -Dversiononly=undef"
     debian_release:
       - bookworm
