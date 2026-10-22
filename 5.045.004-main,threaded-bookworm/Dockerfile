@@ -4,10 +4,10 @@ FROM buildpack-deps:bookworm
 WORKDIR /usr/src/perl
 
 RUN true \
-    && curl -fL https://cpan.metacpan.org/authors/id/B/BO/BOOK/perl-5.45.3.tar.gz -o perl-5.45.3.tar.gz \
-    && echo 'f8aac25c3dc34abbaf0d84da132913f726c7faa27906b460cc442da417c2fdac *perl-5.45.3.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.45.3.tar.gz -C /usr/src/perl \
-    && rm perl-5.45.3.tar.gz \
+    && curl -fL https://cpan.metacpan.org/authors/id/E/EH/EHERMAN/perl-5.45.4.tar.gz -o perl-5.45.4.tar.gz \
+    && echo '9ad6ff5750dd512437af86f260365186d925a4fcd5002a1d88b8385df5938ea4 *perl-5.45.4.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.45.4.tar.gz -C /usr/src/perl \
+    && rm perl-5.45.4.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -39,4 +39,4 @@ RUN true \
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.45.3","-de0"]
+CMD ["perl5.45.4","-de0"]
