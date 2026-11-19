@@ -1,34 +1,13 @@
-FROM debian:trixie-slim
+FROM buildpack-deps:trixie
 
 # No DevelPatchPerl.patch generated
 WORKDIR /usr/src/perl
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       bzip2 \
-       ca-certificates \
-       # cpio \
-       curl \
-       dpkg-dev \
-       # file \
-       gcc \
-       # g++ \
-       # libbz2-dev \
-       # libdb-dev \
-       libc6-dev \
-       # libgdbm-dev \
-       # liblzma-dev \
-       make \
-       netbase \
-       patch \
-       # procps \
-       zlib1g-dev \
-       xz-utils \
-       libssl-dev \
-    && curl -fL https://cpan.metacpan.org/authors/id/E/EH/EHERMAN/perl-5.45.4.tar.gz -o perl-5.45.4.tar.gz \
-    && echo '9ad6ff5750dd512437af86f260365186d925a4fcd5002a1d88b8385df5938ea4 *perl-5.45.4.tar.gz' | sha256sum --strict --check - \
-    && tar --strip-components=1 -xaf perl-5.45.4.tar.gz -C /usr/src/perl \
-    && rm perl-5.45.4.tar.gz \
+RUN true \
+    && curl -fL https://cpan.metacpan.org/authors/id/E/EH/EHERMAN/perl-5.45.5.tar.gz -o perl-5.45.5.tar.gz \
+    && echo '43942ec8a80396abe4d688a6abbc27287442a8073e1a563fb70feb74676db131 *perl-5.45.5.tar.gz' | sha256sum --strict --check - \
+    && tar --strip-components=1 -xaf perl-5.45.5.tar.gz -C /usr/src/perl \
+    && rm perl-5.45.5.tar.gz \
     && cat *.patch | patch -p1 \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
     && archBits="$(dpkg-architecture --query DEB_BUILD_ARCH_BITS)" \
@@ -50,18 +29,14 @@ RUN apt-get update \
     && curl -fLO 'https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.099.tar.gz' \
     && echo 'a0be800ff4852b1567ee5500e772417ad7a360abff80c01b5b875c15d44be832 *IO-Socket-SSL-2.099.tar.gz' | sha256sum --strict --check - \
     && SSL_CERT_DIR=/etc/ssl/certs cpanm --from $PWD IO-Socket-SSL-2.099.tar.gz \
-    && curl -fL https://raw.githubusercontent.com/skaji/cpm/v1.1.5/cpm -o /usr/local/bin/cpm \
+    && curl -fL https://raw.githubusercontent.com/skaji/cpm/v1.1.7/cpm -o /usr/local/bin/cpm \
     # sha256 checksum is from docker-perl team, cf https://github.com/docker-library/official-images/pull/12612#issuecomment-1158288299
-    && echo '2e7cdae8f84a673384d40e2486aa236955b7f69547d66f9920564c05b330f9e0 */usr/local/bin/cpm' | sha256sum --strict --check - \
+    && echo '7375479d039ed1fc97e79e6a333b72e5536247d6fd52ca7e2aac16b0142da959 */usr/local/bin/cpm' | sha256sum --strict --check - \
     && chmod +x /usr/local/bin/cpm \
-    && savedPackages="ca-certificates curl make netbase zlib1g-dev libssl-dev" \
-    && apt-mark auto '.*' > /dev/null \
-    && apt-mark manual $savedPackages \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -fr /var/cache/apt/* /var/lib/apt/lists/* \
+    && true \
     && rm -fr /root/.cpanm /root/Net-SSLeay-1.96* /root/IO-Socket-SSL-2.099* /usr/src/perl /usr/src/App-cpanminus-1.7049* /tmp/* \
     && cpanm --version && cpm --version
 
 WORKDIR /usr/src/app
 
-CMD ["perl5.45.4","-de0"]
+CMD ["perl5.45.5","-de0"]
